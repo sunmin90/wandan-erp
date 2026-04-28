@@ -335,9 +335,14 @@ tr:hover td{background:#fdfcfb}
       <th>로트</th><th>입고일</th><th>상태</th><th>관리</th>
     </tr></thead><tbody id="inv-body"></tbody></table>
   </div>
-  <div id="inv-del-section" style="display:none">
-    <div class="st">🗑️ 삭제된 재고 히스토리</div>
-    <div id="inv-del-list"></div>
+  <div id="inv-del-section" style="display:none;margin-top:16px">
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:#fff8f5;border:1px solid #fecaca;border-radius:9px;cursor:pointer" onclick="toggleDelHistory()">
+      <span style="font-size:11px;font-weight:700;color:#dc2626">🗑️ 삭제된 재고 히스토리</span>
+      <span id="del-count-badge" style="font-size:10px;background:#fecaca;color:#991b1b;padding:1px 7px;border-radius:8px;font-weight:600"></span>
+      <span style="margin-left:auto;font-size:11px;color:#aaa" id="del-toggle-txt">▼ 펼치기</span>
+      <button class="btn sm d" onclick="event.stopPropagation();clearDelHistory()" style="font-size:10px;padding:2px 7px">히스토리 초기화</button>
+    </div>
+    <div id="inv-del-list" style="display:none;max-height:200px;overflow-y:auto;margin-top:6px;border:1px solid #f5e0e0;border-radius:7px;padding:8px"></div>
   </div>
 </div>
 
@@ -936,6 +941,19 @@ function uploadEditExcel(input){
   reader.readAsBinaryString(file);
 }
 
+function toggleDelHistory(){
+  const dl=document.getElementById('inv-del-list');
+  const txt=document.getElementById('del-toggle-txt');
+  if(!dl)return;
+  const isOpen=dl.style.display!=='none';
+  dl.style.display=isOpen?'none':'block';
+  if(txt)txt.textContent=isOpen?'▼ 펼치기':'▲ 접기';
+}
+function clearDelHistory(){
+  if(!confirm('삭제 히스토리를 모두 초기화하시겠습니까?'))return;
+  DELINV=[];sv();renderInv();
+}
+
 function renderInv(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
   const c1=document.getElementById('if-cat1').value;
@@ -990,8 +1008,10 @@ function renderInv(){
   // 삭제 히스토리
   const ds=document.getElementById('inv-del-section');
   const dl=document.getElementById('inv-del-list');
+  const badge=document.getElementById('del-count-badge');
   if(DELINV.length){
     ds.style.display='block';
+    if(badge)badge.textContent=DELINV.length+'건';
     dl.innerHTML=DELINV.slice().reverse().map(d=>`<div class="del-row"><b>${d.name}</b> / ${d.color} <span class="ltag">${d.lot||'-'}</span> — ${d.date||''} 입고 / 삭제일: ${d.deletedAt}</div>`).join('');
   }else{ds.style.display='none';}
 }
