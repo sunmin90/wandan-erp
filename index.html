@@ -1035,9 +1035,10 @@ function downloadTemplate(){
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet([
     ['품목명','컬러','폭(숫자)','폭단위(inch/cm)','로트번호','입고일(YYYY-MM-DD)','공장명','후가공(Y/N)','후가공종류','생지원단가(VAT별도)','염색단가','가공단가','판매가','롤1(yd)','롤2(yd)','롤3(yd)','롤4(yd)','롤5(yd)','메모'],
-    ['TC 브로드','화이트','2024-0315-A','2024-03-15','덕부섬유','N','','900','250','0','1800','281','241','206','','',''],
-    ['캔버스 20수','베이지','2024-0220-A','2024-02-20','한솔섬유','Y','방축','1200','320','150','2500','180','195','','','','수출용'],
+    ['TC 브로드','화이트',44,'inch','2024-0315-A','2024-03-15','덕부섬유','N','',900,250,0,1800,281,241,206,'','',''],
+    ['캔버스 20수','베이지',58,'inch','2024-0220-A','2024-02-20','한솔섬유','Y','방축',1200,320,150,2500,180,195,'','','','수출용'],
   ]);
+  ws['!cols']=[{wch:14},{wch:10},{wch:8},{wch:12},{wch:16},{wch:16},{wch:12},{wch:10},{wch:10},{wch:16},{wch:10},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:14}];
   XLSX.utils.book_append_sheet(wb,ws,'재고등록양식');
   XLSX.writeFile(wb,'재고_일괄등록_양식.xlsx');
 }
@@ -1045,19 +1046,40 @@ function uploadExcel(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=e=>{
-    const wb=XLSX.read(e.target.result,{type:'binary'});
+    const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
     const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws,{header:1}).slice(1);
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'yyyy-mm-dd'}).slice(1);
     let added=0;
-    rows.forEach(r=>{
-      if(!r[0]||!r[1])return;
-      const rolls=[];for(let i=11;i<=15;i++){if(r[i]&&parseFloat(r[i])>0)rolls.push(parseFloat(r[i]));}
-      const vend=VEND.find(v=>v.type==='factory'&&v.name===(r[4]||'').trim());
-      const item={id:uid(),catP:'',catC:'',name:(r[0]||'').trim(),color:(r[1]||'').trim(),lot:(r[2]||'').trim(),date:(r[3]||'').trim()||today(),factoryId:vend?.id||'',proc:(r[5]||'N').trim().toUpperCase()==='Y'?'Y':'N',finishVendId:'',procType:(r[6]||'').trim(),costGreige:parseFloat(r[7])||0,costDye:parseFloat(r[8])||0,costProc:parseFloat(r[9])||0,price:parseFloat(r[10])||0,rollYards:rolls.length?rolls:[0],memo:(r[16]||'').trim()};
+    rows.forEach(function(r){
+      const name=(r[0]||'').toString().trim();
+      const color=(r[1]||'').toString().trim();
+      if(!name||!color)return;
+      // 컬럼: 0품목명 1컬러 2폭 3폭단위 4로트번호 5입고일 6공장명 7후가공 8후가공종류 9생지 10염색 11가공 12판매가 13~17롤 18메모
+      const rolls=[];
+      for(let i=13;i<=17;i++){const v=parseFloat(r[i]);if(v>0)rolls.push(v);}
+      const lotVal=(r[4]||'').toString().trim();
+      let dateVal=(r[5]||'').toString().trim();
+      if(!dateVal||!/^\d{4}-\d{2}-\d{2}$/.test(dateVal))dateVal=today();
+      const factoryName=(r[6]||'').toString().trim();
+      const vend=VEND.find(function(v){return v.type==='factory'&&v.name===factoryName;});
+      const item={
+        id:uid(),catP:'',catC:'',
+        name:name,color:color,
+        width:parseFloat(r[2])||null,
+        widthUnit:(r[3]||'inch').toString().trim()||'inch',
+        lot:lotVal,date:dateVal,
+        factoryId:vend?vend.id:'',
+        proc:(r[7]||'N').toString().trim().toUpperCase()==='Y'?'Y':'N',
+        finishVendId:'',procType:(r[8]||'').toString().trim(),
+        costGreige:parseFloat(r[9])||0,costDye:parseFloat(r[10])||0,
+        costProc:parseFloat(r[11])||0,price:parseFloat(r[12])||0,
+        rollYards:rolls.length?rolls:[],
+        memo:(r[18]||'').toString().trim()
+      };
       INV.unshift(item);added++;
     });
     sv();renderInv();input.value='';
-    alert(`${added}개 품목이 등록되었습니다.${'\n'}공장명이 거래처에 없는 경우 공장 필드가 비어있을 수 있습니다.`);
+    alert(added+'개 품목이 등록되었습니다.\n\n※ 공장명이 거래처에 등록되지 않은 경우 공장 필드가 비어있습니다.\n거래처 관리에서 먼저 공장을 등록해주세요.');
   };
   reader.readAsBinaryString(file);
 }
