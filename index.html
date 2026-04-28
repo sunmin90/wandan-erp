@@ -182,7 +182,7 @@ tr:hover td{background:#fdfcfb}
 .mc-m{display:inline-block;font-size:10px;padding:1px 6px;border-radius:5px;background:#fef3c7;color:#92400e;font-weight:600}
 .mc-l{display:inline-block;font-size:10px;padding:1px 6px;border-radius:5px;background:#fee2e2;color:#991b1b;font-weight:600}
 .st{font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 7px;padding-bottom:5px;border-bottom:1px solid #f0ede8;display:flex;align-items:center;gap:6px}
-.empty{text-align:center;padding:38px;color:#aaa;font-size:12px}
+.empty{text-align:center;padding:18px;color:#aaa;font-size:12px}
 .tip{background:#eff6ff;border-radius:8px;padding:9px 13px;font-size:11px;color:#1d4ed8;margin-bottom:12px}
 .del-row{background:#fff8f5;border-left:3px solid #fecaca;padding:7px 11px;margin-bottom:5px;border-radius:0 6px 6px 0;font-size:11px;color:#666}
 .vtrow{display:flex;gap:2px;margin-bottom:14px;background:#f5f4f0;border-radius:7px;padding:3px}
@@ -329,7 +329,7 @@ tr:hover td{background:#fdfcfb}
       <h2>재고 목록 <span style="font-size:10px;color:#aaa;font-weight:400">— 컬러 클릭 시 롤별 상세</span></h2>
       <select class="fsel" id="if-proc" onchange="renderInv()"><option value="">전체</option><option value="Y">후가공 있음</option><option value="N">후가공 없음</option></select>
     </div>
-    <table><thead><tr>
+    <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr>
       <th style="width:32px"><input type="checkbox" id="inv-chk-all" onclick="toggleInvAll(this)" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer"></th><th>코드</th><th>카테고리</th><th>품목명</th><th>컬러 ↙ 클릭</th><th>공장</th><th>후가공</th>
       <th>폭</th><th>롤수</th><th>총 yd</th><th>원가/yd</th><th>판매가/yd</th><th>마진율</th>
       <th>로트</th><th>입고일</th><th>상태</th><th>관리</th>
@@ -941,6 +941,19 @@ function uploadEditExcel(input){
   reader.readAsBinaryString(file);
 }
 
+function restoreAllFromHistory(){
+  if(!DELINV.length){alert('복구할 항목이 없습니다.');return;}
+  if(!confirm(DELINV.length+'개 삭제된 항목을 재고로 복구하시겠습니까?'))return;
+  DELINV.forEach(function(d){
+    const copy={...d};
+    delete copy.deletedAt;
+    if(!INV.find(i=>i.id===copy.id)) INV.unshift(copy);
+  });
+  DELINV=[];
+  sv();renderInv();
+  alert('복구 완료!');
+}
+
 function toggleDelHistory(){
   const dl=document.getElementById('inv-del-list');
   const txt=document.getElementById('del-toggle-txt');
@@ -1003,7 +1016,7 @@ function renderInv(){
       <td>${stBadge}</td>
       <td style="white-space:nowrap"><button class="btn sm y" onclick="openInvModal('${item.id}')">편집</button> <button class="btn sm d" onclick="delInv('${item.id}')">삭제</button></td>
     </tr>`;
-  }).join(''):`<tr><td colspan="14" class="empty">재고 항목이 없습니다.</td></tr>`;
+  }).join(''): `<tr><td colspan="17" style="text-align:center;padding:18px;color:#aaa;font-size:12px">재고 항목이 없습니다.${DELINV.length?` <button class="btn sm" onclick="restoreAllFromHistory()" style="margin-left:8px;color:#dc2626;border-color:#fecaca">🔄 히스토리에서 전체 복구</button>`:''}</td></tr>`;
 
   // 삭제 히스토리
   const ds=document.getElementById('inv-del-section');
