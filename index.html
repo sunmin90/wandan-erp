@@ -308,8 +308,20 @@ tr:hover td{background:#fdfcfb}
     <select class="fsel" id="if-cat2" onchange="renderInv()" disabled><option value="">전체 세부</option></select>
     <button class="btn sm" onclick="resetInvFilter()">초기화</button>
     <div style="margin-left:auto;display:flex;gap:7px">
-      <button class="btn sm" onclick="downloadTemplate()">📥 일괄양식 다운로드</button>
-      <label class="btn sm" style="cursor:pointer">📤 엑셀 업로드<input type="file" accept=".xlsx,.xls" style="display:none" onchange="uploadExcel(this)"></label>
+      <button class="btn sm" onclick="downloadTemplate()">📥 일괄등록 양식</button>
+      <label class="btn sm" style="cursor:pointer">📤 일괄 등록<input type="file" accept=".xlsx,.xls" style="display:none" onchange="uploadExcel(this)"></label>
+    </div>
+  </div>
+  <!-- 선택 액션 바 -->
+  <div id="inv-action-bar" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:9px 13px;margin-bottom:12px;display:none;align-items:center;gap:8px">
+    <span id="inv-sel-count" style="font-size:12px;color:#1d4ed8;font-weight:600">0건 선택</span>
+    <button class="btn sm" onclick="toggleInvAll(null,true)" style="background:#dbeafe;border-color:#93c5fd;color:#1d4ed8">전체선택</button>
+    <button class="btn sm" onclick="toggleInvAll(null,false)">전체해제</button>
+    <button class="btn sm" onclick="downloadSelectedInv()" style="background:#d1fae5;border-color:#6ee7b7;color:#065f46">📥 선택항목 수정양식 다운로드</button>
+    <label class="btn sm" style="cursor:pointer;background:#fef3c7;border-color:#fde68a;color:#92400e">📤 일괄 수정 업로드<input type="file" accept=".xlsx,.xls" style="display:none" onchange="uploadEditExcel(this)"></label>
+    <button class="btn sm d" onclick="deleteSelectedInv()">🗑️ 선택삭제</button>
+  </div>
+
     </div>
   </div>
   <div class="card">
@@ -318,7 +330,7 @@ tr:hover td{background:#fdfcfb}
       <select class="fsel" id="if-proc" onchange="renderInv()"><option value="">전체</option><option value="Y">후가공 있음</option><option value="N">후가공 없음</option></select>
     </div>
     <table><thead><tr>
-      <th>카테고리</th><th>품목명</th><th>컬러 ↙ 클릭</th><th>공장</th><th>후가공</th>
+      <th style="width:32px"><input type="checkbox" id="inv-chk-all" onclick="toggleInvAll(this)" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer"></th><th>코드</th><th>카테고리</th><th>품목명</th><th>컬러 ↙ 클릭</th><th>공장</th><th>후가공</th>
       <th>폭</th><th>롤수</th><th>총 yd</th><th>원가/yd</th><th>판매가/yd</th><th>마진율</th>
       <th>로트</th><th>입고일</th><th>상태</th><th>관리</th>
     </tr></thead><tbody id="inv-body"></tbody></table>
@@ -812,6 +824,118 @@ function resetInvFilter(){
   renderInv();
 }
 
+// ── 재고 체크박스 관련 ──
+function toggleInvAll(chk, forceCheck){
+  const allChks = document.querySelectorAll('.inv-chk');
+  const checked = forceCheck !== undefined ? forceCheck : (chk ? chk.checked : false);
+  allChks.forEach(c => c.checked = checked);
+  const allChk = document.getElementById('inv-chk-all');
+  if(allChk) allChk.checked = checked;
+  updateInvSelCount();
+}
+
+function updateInvSelCount(){
+  const checked = document.querySelectorAll('.inv-chk:checked');
+  const bar = document.getElementById('inv-action-bar');
+  const countEl = document.getElementById('inv-sel-count');
+  if(bar){
+    bar.style.display = checked.length > 0 ? 'flex' : 'none';
+  }
+  if(countEl) countEl.textContent = checked.length + '건 선택';
+  // 전체선택 체크박스 동기화
+  const all = document.querySelectorAll('.inv-chk');
+  const allChk = document.getElementById('inv-chk-all');
+  if(allChk) allChk.checked = all.length > 0 && checked.length === all.length;
+}
+
+function getSelectedInvIds(){
+  return Array.from(document.querySelectorAll('.inv-chk:checked')).map(c => c.dataset.id);
+}
+
+function deleteSelectedInv(){
+  const ids = getSelectedInvIds();
+  if(!ids.length){ alert('삭제할 항목을 선택하세요.'); return; }
+  if(!confirm(ids.length + '개 항목을 삭제하시겠습니까?\n삭제된 항목은 히스토리에 기록됩니다.')) return;
+  ids.forEach(id => {
+    const item = INV.find(i => i.id === id);
+    if(item) DELINV.push({...item, deletedAt: today()});
+  });
+  INV = INV.filter(i => !ids.includes(i.id));
+  sv(); renderInv();
+  alert(ids.length + '개 항목이 삭제되었습니다.');
+}
+
+function downloadSelectedInv(){
+  const ids = getSelectedInvIds();
+  const items = ids.length > 0 ? INV.filter(i => ids.includes(i.id)) : INV;
+  if(!items.length){ alert('항목이 없습니다.'); return; }
+  const headers = ['품목코드','품목명','컬러','폭(숫자)','폭단위(inch/cm)','로트번호','입고일','공장명','후가공(Y/N)','후가공종류','생지원단가(VAT별도)','염색단가','가공단가','판매가','롤1(yd)','롤2(yd)','롤3(yd)','롤4(yd)','롤5(yd)','롤6(yd)','롤7(yd)','롤8(yd)','메모'];
+  const rows = items.map(item => {
+    const vend = VEND.find(v => v.id === item.factoryId);
+    const rolls = item.rollYards || [];
+    return [
+      item.code||'',item.name,item.color,
+      item.width||'',item.widthUnit||'inch',
+      item.lot||'',item.date||'',
+      vend?vend.name:'',
+      item.proc||'N',item.procType||'',
+      item.costGreige||'',item.costDye||'',item.costProc||'',item.price||'',
+      rolls[0]||'',rolls[1]||'',rolls[2]||'',rolls[3]||'',rolls[4]||'',rolls[5]||'',rolls[6]||'',rolls[7]||'',
+      item.memo||''
+    ];
+  });
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  ws['!cols'] = headers.map((_,i) => ({wch: i===0?14:i<=3?12:10}));
+  XLSX.utils.book_append_sheet(wb, ws, '재고수정');
+  XLSX.writeFile(wb, '재고_일괄수정_' + today() + '.xlsx');
+}
+
+function uploadEditExcel(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:'yyyy-mm-dd'}).slice(1);
+    let updated = 0, notFound = [];
+    rows.forEach(r => {
+      const code = (r[0]||'').toString().trim();
+      if(!code) return;
+      const idx = INV.findIndex(i => i.code === code);
+      if(idx < 0){ notFound.push(code); return; }
+      const item = INV[idx];
+      const vend = VEND.find(v => v.type==='factory' && v.name===(r[7]||'').toString().trim());
+      const rolls = [];
+      for(let i=14;i<=21;i++){ const v=parseFloat(r[i]); if(v>0) rolls.push(v); }
+      INV[idx] = {
+        ...item,
+        name:(r[1]||item.name).toString().trim(),
+        color:(r[2]||item.color).toString().trim(),
+        width:parseFloat(r[3])||item.width||null,
+        widthUnit:(r[4]||item.widthUnit||'inch').toString().trim(),
+        lot:(r[5]||item.lot||'').toString().trim(),
+        date:(r[6]||item.date||'').toString().trim()||item.date,
+        factoryId:vend?vend.id:item.factoryId,
+        proc:(r[8]||item.proc||'N').toString().trim().toUpperCase()==='Y'?'Y':'N',
+        procType:(r[9]||item.procType||'').toString().trim(),
+        costGreige:parseFloat(r[10])||item.costGreige||0,
+        costDye:parseFloat(r[11])||item.costDye||0,
+        costProc:parseFloat(r[12])||item.costProc||0,
+        price:parseFloat(r[13])||item.price||0,
+        rollYards:rolls.length?rolls:item.rollYards,
+        memo:(r[22]||item.memo||'').toString().trim(),
+      };
+      updated++;
+    });
+    sv(); renderInv(); input.value='';
+    let msg = updated + '개 항목이 수정되었습니다.';
+    if(notFound.length) msg += '\n\n다음 코드를 찾을 수 없습니다:\n' + notFound.join(', ');
+    alert(msg);
+  };
+  reader.readAsBinaryString(file);
+}
+
 function renderInv(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
   const c1=document.getElementById('if-cat1').value;
@@ -843,8 +967,10 @@ function renderInv(){
     const stBadge=yd<=0?'<span class="b r">소진</span>':rc<=2?'<span class="b a">부족</span>':'<span class="b g">보유</span>';
     const procTxt=item.proc==='Y'?`<span class="b a">${item.procType||'후가공'}</span>`:'<span style="color:#ddd;font-size:10px">없음</span>';
     return`<tr>
+      <td style="text-align:center"><input type="checkbox" class="inv-chk" data-id="${item.id}" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer" onclick="updateInvSelCount()"></td>
+      <td><span class="ltag" style="font-size:10px;color:#3b82f6">${item.code||'-'}</span></td>
       <td>${catLabel}</td>
-      <td><b>${item.name}</b>${item.memo?`<div style="font-size:10px;color:#aaa">${item.memo}</div>`:''}</td>
+      <td><b>${item.name}</b></td>
       <td><span class="clink" onclick="showRolls('${item.id}')"><span class="dot" style="background:${hex}"></span>${item.color}</span></td>
       <td><span style="font-size:10px;background:#d1fae5;border-radius:4px;padding:2px 6px;color:#065f46">${vend?vend.name:'-'}</span></td>
       <td>${procTxt}</td>
@@ -960,8 +1086,26 @@ function saveInv(){
   if(!document.getElementById('fi-name').value.trim()){alert('품목명을 입력하세요.');return;}
   if(!document.getElementById('fi-color').value.trim()){alert('컬러를 입력하세요.');return;}
   if(!rolls.length){alert('롤 수량을 최소 1개 입력하세요.');return;}
+  // 품목코드 생성 (신규만)
+  let itemCode = '';
+  if(editInvId){
+    const existing = INV.find(i=>i.id===editInvId);
+    itemCode = existing?.code || '';
+  }
+  if(!itemCode){
+    // ITM-YYYYMMDD-XXXX 형식
+    const d = new Date();
+    const ymd = d.getFullYear().toString().slice(2) + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+    const seq = String(INV.length+1).padStart(4,'0');
+    itemCode = 'ITM-' + ymd + '-' + seq;
+    // 중복 체크
+    while(INV.find(i=>i.code===itemCode)){
+      itemCode = 'ITM-' + ymd + '-' + String(Math.floor(Math.random()*9000)+1000);
+    }
+  }
   const item={
     id:editInvId||uid(),
+    code:itemCode,
     catP:document.getElementById('fi-cat1').value,
     catC:document.getElementById('fi-cat2').value,
     name:document.getElementById('fi-name').value.trim(),
@@ -1002,31 +1146,57 @@ function showRolls(id){
   const cost=itemCost(item);const margin=itemMargin(item);
   document.getElementById('m-roll-title').innerHTML=`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${hex};width:12px;height:12px"></span>${item.name} / ${item.color}</span>`;
   document.getElementById('m-roll-body').innerHTML=`
+    <!-- 기본 정보 -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0ede8">
+      ${item.code?`<span style="font-size:11px;background:#dbeafe;border-radius:4px;padding:2px 8px;color:#1d4ed8;font-weight:700;font-family:monospace">${item.code}</span>`:''}
       ${vend?`<span style="background:#d1fae5;border-radius:5px;padding:2px 8px;font-size:11px;color:#065f46;font-weight:500">🏭 ${vend.name}</span>`:''}
-      <span class="ltag" style="font-size:11px">${item.lot||'-'}</span>
-      <span style="font-size:11px;color:#aaa">${item.date||''}</span>
+      ${item.lot?`<span class="ltag" style="font-size:11px">${item.lot}</span>`:''}
+      ${item.date?`<span style="font-size:11px;color:#aaa">${item.date}</span>`:''}
       ${item.width?`<span style="font-size:11px;background:#e0f2fe;border-radius:4px;padding:2px 8px;color:#0369a1;font-weight:600">폭 ${item.width}${item.widthUnit||'inch'}</span>`:''}
       ${item.proc==='Y'?`<span class="b a">${item.procType||'후가공'} ${fvend?'— '+fvend.name:''}</span>`:''}
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px">
-      <thead><tr><th style="background:#f5f4f0;padding:7px 11px;text-align:left;font-size:10px;color:#888;font-weight:500">롤</th><th style="background:#f5f4f0;padding:7px 11px;text-align:left;font-size:10px;color:#888;font-weight:500">야드</th><th style="background:#f5f4f0;padding:7px 11px;text-align:left;font-size:10px;color:#888;font-weight:500">비율</th></tr></thead>
-      <tbody>${rolls.map((y,i)=>`<tr><td style="padding:8px 11px;color:#aaa">${i+1}롤</td><td style="padding:8px 11px"><b style="font-size:14px">${y.toLocaleString()}</b> yd</td><td style="padding:8px 11px"><div style="height:5px;background:#f0ede8;border-radius:3px;width:120px;overflow:hidden"><div style="height:100%;background:#3b82f6;border-radius:3px;width:${Math.round(y/maxY*100)}%"></div></div></td></tr>`).join('')}</tbody>
-    </table>
+    <!-- 요약 스탯 -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:700">${rolls.length}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 롤</div></div>
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:700">${fmtN(total)}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 야드</div></div>
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:700">${rolls.length?fmtN(total/rolls.length):'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">평균 yd/롤</div></div>
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:14px;font-weight:700">${Math.min(...rolls)||'-'}~${Math.max(...rolls)||'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">최소~최대</div></div>
+      <div style="background:#f0f4ff;border-radius:7px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#1d4ed8">${rolls.length}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 롤 수</div></div>
+      <div style="background:#f0fdf4;border-radius:7px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#059669">${fmtN(total)}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 야드</div></div>
+      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:700">${rolls.length?fmtN(Math.round(total/rolls.length)):'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">평균 yd/롤</div></div>
+      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:13px;font-weight:700">${rolls.length?Math.min(...rolls).toFixed(1)+'~'+Math.max(...rolls).toFixed(1):'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">최소~최대 yd</div></div>
     </div>
+    <!-- 롤별 테이블 (이미지 스타일) -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">롤별 수량</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:#f5f4f0">
+          <th style="padding:7px 12px;text-align:center;font-size:10px;color:#888;font-weight:500;width:50px">롤</th>
+          <th style="padding:7px 12px;text-align:right;font-size:10px;color:#888;font-weight:500">야드 (yd)</th>
+          <th style="padding:7px 12px;text-align:left;font-size:10px;color:#888;font-weight:500">그래프</th>
+        </tr></thead>
+        <tbody>
+          ${rolls.map((y,i)=>`
+          <tr style="border-bottom:1px solid #f5f4f0${i===rolls.length-1?';border-bottom:none':''}">
+            <td style="padding:8px 12px;text-align:center;font-weight:600;color:#1d4ed8;font-size:13px">${i+1}</td>
+            <td style="padding:8px 12px;text-align:right;font-weight:700;font-size:14px">${y.toFixed(1)}</td>
+            <td style="padding:8px 12px">
+              <div style="height:6px;background:#f0ede8;border-radius:3px;width:100%;overflow:hidden">
+                <div style="height:100%;background:${y===Math.max(...rolls)?'#059669':'#3b82f6'};border-radius:3px;width:${Math.round(y/maxY*100)}%"></div>
+              </div>
+            </td>
+          </tr>`).join('')}
+          <tr style="background:#f0f4ff;font-weight:700">
+            <td style="padding:7px 12px;text-align:center;font-size:11px;color:#1d4ed8">합계</td>
+            <td style="padding:7px 12px;text-align:right;font-size:14px;color:#1d4ed8">${fmtN(total)}</td>
+            <td style="padding:7px 12px;font-size:10px;color:#aaa">${rolls.length}롤</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- 원가/메모 -->
     <div class="cbox">
-      <div class="cr"><span class="cl">생지원단가 (×1.1)</span><span>${fmt((item.costGreige||0)*1.1)}</span></div>
-      <div class="cr"><span class="cl">+ 염색단가</span><span>${fmt(item.costDye)}</span></div>
-      <div class="cr"><span class="cl">+ 가공단가</span><span>${fmt(item.costProc)}</span></div>
-      <div class="cr"><span class="cl">= 원가</span><span style="color:#3b82f6">${fmt(cost)}</span></div>
+      <div class="cr"><span class="cl">원가 (생지×1.1 + 염색 + 가공)</span><span style="color:#3b82f6">${fmt(cost)}</span></div>
       <div class="cr"><span class="cl">판매가</span><span>${fmt(item.price)}</span></div>
       <div class="cr"><span class="cl">마진율</span><span class="${margin!=null&&margin>=30?'mc-g':margin!=null&&margin>=15?'mc-m':'mc-l'}">${margin!=null?margin.toFixed(1)+'%':'-'}</span></div>
-    </div>`;
+    </div>
+    ${item.memo?`<div style="margin-top:10px;background:#fef9c3;border-radius:7px;padding:9px 12px;font-size:12px;color:#92400e">📝 ${item.memo}</div>`:''}`;
   openM('m-roll');
 }
 
@@ -2694,6 +2864,14 @@ function initSample(){
 
 // ══ 시작 ══
 initSample();
+// 기존 품목에 코드 없으면 자동 부여
+INV.forEach(function(item, idx){
+  if(!item.code){
+    const d = new Date(item.date||new Date());
+    const ymd = d.getFullYear().toString().slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    item.code = 'ITM-'+ymd+'-'+String(idx+1).padStart(4,'0');
+  }
+});
 populateInvFilter();
 renderInv();
 </script>
@@ -2740,6 +2918,8 @@ if(typeof firebase === 'undefined') {
   var db = firebase.firestore();
   window.auth = auth;
   window.db = db;
+  // 브라우저 탭/창 닫으면 로그아웃, 새로고침은 유지
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e){ console.warn('setPersistence error:', e); });
 }
 
 // ── 권한 정의 ──
