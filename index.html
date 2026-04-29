@@ -1456,7 +1456,7 @@ function removeItemLine(lid){ordItems=ordItems.filter(l=>l.id!==lid);renderItemL
 function renderItemLines(){
   const el=document.getElementById('item-lines');if(!el)return;
   if(!ordItems.length){el.innerHTML='<div style="text-align:center;padding:18px;color:#aaa;font-size:14px;border:1.5px dashed #e5e3de;border-radius:8px">+ 품목 추가 버튼을 눌러 품목을 추가하세요</div>';return;}
-  el.innerHTML=ordItems.map((line,idx)=>{
+  el.innerHTML=ordItemLines.map((line,idx)=>{
     const hex=chex(line.color||'');
     const selHtml=line.invId?`<div class="il-sel">✅ <b>${line.name}</b> <span class="dot" style="background:${hex};width:9px;height:9px;display:inline-block;vertical-align:middle"></span> ${line.color} <span class="ltag">${fmtDate(line.lot)||'-'}</span> &nbsp; 재고: <b>${fmtN(totalYd(INV.find(i=>i.id===line.invId)||{rollYards:[]}))}yd</b></div>`:'';
     const qtyHtml=line.invId?`<div class="il-qty-row" style="margin-top:8px">
@@ -1622,7 +1622,7 @@ function filterItemSearch(lineId){
 }
 
   // 메모 필드 동기화
-  ordItems.forEach(function(line){
+  (ordItemLines||[]).forEach(function(line){
     var nel=document.getElementById('ilnote-'+line.id);
     if(nel)nel.value=line.note||'';
   });
@@ -1908,7 +1908,7 @@ function saveOrd(editId){
     memo:document.getElementById('oi-memo').value.trim(),
     status:'draft',paid:false,
     // 다품목
-    items:ordItemLines.map(l=>({id:l.id,invId:l.invId,name:l.name,color:l.color,lot:l.lot,qty:l.qty,unit:l.unit,base:l.base,nego:l.nego||0,cost:l.cost||0,supply:Math.round((l.nego||l.base)*l.qty)})),
+    items:ordItemLines.map(l=>({id:l.id,invId:l.invId,name:l.name,color:l.color,lot:l.lot,qty:l.qty,unit:l.unit,base:l.base,nego:l.nego||0,cost:l.cost||0,supply:Math.round((l.nego||l.base)*l.qty),note:l.note||''})),
   };
   if(editId&&editId!==''){
     const idx=ORD.findIndex(o=>o.id===editId);
@@ -1994,23 +1994,24 @@ function renderShip(){
       <!-- 품목 + 출고정보 레이아웃 -->
       <div style="display:grid;grid-template-columns:1fr 280px;gap:0;align-items:stretch">
         <!-- 품목 테이블 -->
-        <div style="margin-bottom:${o.memo?'0':'8px'}">
+        <div>
         <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead><tr style="background:#f5f4f0">
             <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">품목</th>
-            <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">컬러 / 로트 &nbsp;&nbsp; 수량</th>
+            <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">컬러 / 로트</th>
+            <th style="padding:7px 12px;text-align:right;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de;width:90px;white-space:nowrap">수량</th>
           </tr></thead>
           <tbody>
-          ${(o.items&&o.items.length>1?o.items:[{name:o.invName,color:o.color,lot:o.lotNo,qty:o.qty,unit:o.unit||'yd',base:o.basePrice,nego:o.negoPrice,supply:o.supply}]).map(it=>{
+          ${(o.items&&o.items.length>1?o.items:[{name:o.invName,color:o.color,lot:o.lotNo,qty:o.qty,unit:o.unit||'yd',base:o.basePrice,nego:o.negoPrice,supply:o.supply,note:o.memo||""}]).map(it=>{
             const ihex=chex(it.color||'');
             return`<tr style="border-bottom:1px solid #f5f4f0">
               <td style="padding:9px 12px;font-weight:600;white-space:nowrap">${it.name}</td>
               <td style="padding:9px 12px">
-                <span style="display:inline-flex;align-items:center;gap:6px">
+                <span style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap">
                   <span class="dot" style="background:${ihex}"></span>
                   ${it.color}
                   ${it.lot?`<span class="ltag">${fmtDate(it.lot)}</span>`:''}
-                  ${it.note?`<span style="font-size:13px;color:#d97706;margin-left:4px">📌 ${it.note}</span>`:''}
+                  ${it.note?`<span style="font-size:13px;color:#d97706">📌 ${it.note}</span>`:''}
                 </span>
               </td>
               <td style="padding:9px 12px;text-align:right;font-weight:700;white-space:nowrap">${fmtN(it.qty)} <span style="color:#aaa;font-weight:400;font-size:13px">${it.unit||'yd'}</span></td>
@@ -2018,7 +2019,7 @@ function renderShip(){
           }).join('')}
           </tbody>
         </table>
-        ${o.memo?`<div style="padding:7px 12px;background:#fffbf0;border-top:1px solid #fde68a;font-size:14px;color:#92400e">📌 ${o.memo}</div>`:''}
+        ${o.memo?`<div style="padding:8px 12px;background:#fffbf0;border-top:1px solid #fde68a;font-size:14px;color:#92400e">📌 ${o.memo}</div>`:''}
         </div>
         <!-- 출고 정보 패널 -->
         <div style="background:#f4f6ff;border-left:2px solid #c7d2fe;padding:14px 16px;font-size:14px;display:flex;flex-direction:column;gap:7px">
