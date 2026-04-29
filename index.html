@@ -552,7 +552,7 @@ tr:hover td{background:#fdfcfb}
       <select class="fsel" id="if-proc" onchange="renderInv()"><option value="">전체</option><option value="Y">후가공 있음</option><option value="N">후가공 없음</option></select>
     </div>
     <table><thead><tr>
-      <th style="width:32px"><input type="checkbox" id="inv-chk-all" onclick="toggleInvAll(this)" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer"></th><th>코드</th><th>카테고리</th><th>품목명</th><th>컬러 ↙ 클릭</th><th>공장</th><th>후가공</th>
+      <th style="width:32px"><input type="checkbox" id="inv-chk-all" onclick="toggleInvAll(this)" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer"></th><th style="width:80px;min-width:80px;max-width:80px">코드</th><th>카테고리</th><th>품목명</th><th>컬러 ↙ 클릭</th><th>공장</th><th>후가공</th>
       <th>폭</th><th>롤수</th><th>총 yd</th><th>원가/yd</th><th>판매가/yd</th><th>마진율</th>
       <th>로트</th><th>입고일</th><th>상태</th><th>관리</th>
     </tr></thead><tbody id="inv-body"></tbody></table>
@@ -1083,7 +1083,7 @@ function renderInv(){
     const procTxt=item.proc==='Y'?`<span class="b a">${item.procType||'후가공'}</span>`:'<span style="color:#ddd;font-size:14px">없음</span>';
     return`<tr>
       <td>${catLabel}</td>
-      <td><b>${item.name}</b>${item.memo?`<div style="font-size:14px;color:#aaa">${item.memo}</div>`:''}</td>
+      <td><b>${item.name}</b></td>
       <td><span class="clink" onclick="showRolls('${item.id}')"><span class="dot" style="background:${hex}"></span>${item.color}</span></td>
       <td><span style="font-size:14px;background:#d1fae5;border-radius:4px;padding:2px 6px;color:#065f46">${vend?vend.name:'-'}</span></td>
       <td>${procTxt}</td>
@@ -1094,14 +1094,23 @@ function renderInv(){
       <td style="font-weight:600">${item.price?fmtN(item.price)+'원':'-'}</td>
       <td>${mchip}</td>
       <td><span class="ltag">${item.lot||'-'}</span></td>
-      <td style="font-size:14px;color:#aaa">${item.date||'-'}</td>
+      <td style="font-size:14px;color:#aaa">${fmtDate(item.date)}</td>
       <td>${stBadge}</td>
       <td style="white-space:nowrap"><button class="btn sm y" onclick="openInvModal('${item.id}')">편집</button> <button class="btn sm d" onclick="delInv('${item.id}')">삭제</button></td>
     </tr>`;
   }).join(''):`<tr><td colspan="14" class="empty">재고 항목이 없습니다.</td></tr>`;
 
   // 삭제 히스토리
-  document.querySelectorAll('.inv-chk').forEach(function(c){c.addEventListener('change',updateInvSelCount);});updateInvSelCount();
+  // 이벤트 위임으로 체크박스 클릭 처리
+  var tbody2=document.getElementById('inv-body');
+  if(tbody2){
+    tbody2.onclick=function(e){
+      if(e.target.classList.contains('inv-chk')){
+        updateInvSelCount();
+      }
+    };
+  }
+  updateInvSelCount();
   var ds=document.getElementById('inv-del-section');
   var dl=document.getElementById('inv-del-list');
   var badge=document.getElementById('del-count-badge');
@@ -1132,7 +1141,7 @@ function openInvModal(id){
   document.getElementById('fi-lot').value=item?.lot||'';
   document.getElementById('fi-memo').value=item?.memo||'';
   document.getElementById('fi-proctype').value=item?.procType||'';
-  document.getElementById('fi-date').value=item?.date||today();
+  document.getElementById('fi-date').value=fmtDate(item?.date)||today();
   document.getElementById('fi-proc').value=item?.proc||'N';
   document.getElementById('fi-greige').value=item?.costGreige||'';
   document.getElementById('fi-dye').value=item?.costDye||'';
@@ -1207,7 +1216,7 @@ function saveInv(){
     color:document.getElementById('fi-color').value.trim(),
     factoryId:document.getElementById('fi-factory').value,
     lot:document.getElementById('fi-lot').value.trim(),
-    date:document.getElementById('fi-date').value,
+    date:fmtDate(document.getElementById('fi-date').value)||today(),
     proc:document.getElementById('fi-proc').value,
     finishVendId:document.getElementById('fi-fvend').value,
     procType:document.getElementById('fi-proctype').value.trim(),
@@ -2931,6 +2940,19 @@ renderInv();
 </script>
 </div><!-- /app-root -->
 <script>
+function fmtDate(v){
+  if(!v||v==='-')return v||'-';
+  // mm/dd/yy → yyyy-mm-dd 변환
+  var m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if(m){
+    var y=m[3].length===2?'20'+m[3]:m[3];
+    return y+'-'+m[1].padStart(2,'0')+'-'+m[2].padStart(2,'0');
+  }
+  // yyyy-mm-dd 이미 정상이면 그대로
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;
+  return v;
+}
+
 function genInvCode(){var used=new Set();INV.forEach(function(i){if(i.code&&/^[0-9]+$/.test(i.code))used.add(parseInt(i.code));});DELINV.forEach(function(i){if(i.code&&/^[0-9]+$/.test(i.code))used.add(parseInt(i.code));});var n=1;while(used.has(n))n++;return String(n).padStart(6,'0');}
 function syncLotDate(v){var el=document.getElementById('fi-lot');if(el&&(!el.value||/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(el.value)))el.value=v;}
 function syncLotToDate(v){var el=document.getElementById('fi-date');if(el&&/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(v))el.value=v;}
