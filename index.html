@@ -68,7 +68,7 @@ tr:hover td{background:#fdfcfb}
 .tab.ct{color:#ef4444}.tab.ct.on{color:#ef4444;border-bottom-color:#ef4444}
 .mbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
 .mbg.on{display:flex}
-.modal{background:#fff;border-radius:12px;border:1px solid #e0ddd8;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+.modal{display:none;background:#fff;border-radius:12px;border:1px solid #e0ddd8;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.15);position:relative;z-index:101}
 .modal.sm{width:480px}.modal.md{width:600px}.modal.lg{width:720px}.modal.xl{width:840px}
 .mh{padding:14px 18px;border-bottom:1px solid #f0ede8;display:flex;align-items:center;background:#fdfcfb;border-radius:12px 12px 0 0;position:sticky;top:0;z-index:2}
 .mh h3{font-size:15px;font-weight:600;flex:1;color:#111}
@@ -778,6 +778,7 @@ function openM(id){
   var el=document.getElementById(id);
   if(!el)return;
   el.style.display='flex';
+  el.style.flexDirection='column';
   var ov=document.getElementById('modal-overlay');
   if(ov){ov.style.display='flex';ov.onclick=function(){closeM(id);};}
 }
