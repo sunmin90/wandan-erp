@@ -1417,7 +1417,7 @@ function renderOrd(){
           <td></td>
           <td style="padding:5px 11px"><span style="display:inline-flex;align-items:center;gap:4px;font-size:15px"><span class="dot" style="background:${ihex};width:7px;height:7px"></span><b>${it.name}</b> / ${it.color} <span class="ltag">${fmtDate(it.lot)||''}</span></span></td>
           <td></td>
-          <td style="padding:5px 11px;font-size:15px;font-weight:600">${fmtN(it.qty)}<span style="color:#aaa">${it.unit}</span></td>
+          <td style="padding:5px 11px;font-size:15px;font-weight:600">${fmtN(it.qty)}<span style="color:#aaa">${it.unit}</span>${it.note?`<span style="margin-left:6px;font-size:12px;color:#d97706">📌 ${it.note}</span>`:''}</td>
           <td style="padding:5px 11px;font-size:15px">${it.nego?fmtN(it.nego)+'원':fmtN(it.base)+'원'}</td>
           <td style="padding:5px 11px;font-size:15px;color:#3b82f6;font-weight:600">${fmtN(it.supply||0)}원</td>
           <td colspan="4" style="padding:5px 11px"></td>
@@ -1465,7 +1465,9 @@ function renderItemLines(){
       <div class="fr"><label style="font-size:14px">기본가/yd</label><input readonly value="${line.base||''}" style="width:100%;padding:5px 7px;border:1px solid #f0ede8;border-radius:6px;font-size:14px;background:#f5f4f0;color:#555;font-family:inherit"></div>
       <div class="fr"><label style="font-size:14px">네고가/yd</label><input id="ilnego-${line.id}" type="number" min="0" placeholder="네고" value="${line.nego||''}" oninput="updateLine('${line.id}')" style="width:100%;padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit;outline:none"></div>
     </div>
-    ${line.qty>0?`<div class="il-sum"><span>${line.name} / ${line.color} · ${fmtN(line.qty)}${line.unit}</span><span style="font-weight:700;color:#3b82f6">${fmtN(line.supply||0)}원</span></div>`:''}`:''
+    ${line.qty>0?`<div class="il-sum"><span>${line.name} / ${line.color} · ${fmtN(line.qty)}${line.unit}</span><span style="font-weight:700;color:#3b82f6">${fmtN(line.supply||0)}원</span></div>`:''}
+    <input id="ilnote-${line.id}" placeholder="품목 메모 (선택)" oninput="updateLineNote('${line.id}')" style="width:100%;margin-top:6px;padding:5px 8px;border:1px solid #e5e3de;border-radius:6px;font-size:14px;font-family:inherit;outline:none">`
+    :''
     ;
     return`<div class="il" id="il-${line.id}">
       <button class="ildel" onclick="removeItemLine('${line.id}')">×</button>
@@ -1619,6 +1621,12 @@ function filterItemSearch(lineId){
   searchItems(lineId);
 }
 
+  // 메모 필드 동기화
+  ordItems.forEach(function(line){
+    var nel=document.getElementById('ilnote-'+line.id);
+    if(nel)nel.value=line.note||'';
+  });
+
 function searchItems(lineId){
   const q = (document.getElementById('ils-'+lineId)?.value||'').toLowerCase().trim();
   const catId = document.getElementById('ilcat-'+lineId)?.value||'';
@@ -1720,7 +1728,7 @@ function openOrdModal(id){
     document.getElementById('oi-addr').value=o.addr||'';
     document.getElementById('oi-memo').value=o.memo||'';
     // 품목 라인 복원
-    ordItemLines = (o.items||[{id:uid(),invId:o.invId,name:o.invName,color:o.color,lot:o.lotNo,qty:o.qty,unit:o.unit,base:o.basePrice,nego:o.negoPrice||0,cost:0}]).map(it=>({...it,id:it.id||uid()}));
+    ordItemLines = (o.items||[{id:uid(),invId:o.invId,name:o.invName,color:o.color,lot:o.lotNo,qty:o.qty,unit:o.unit,base:o.basePrice,nego:o.negoPrice||0,cost:0}]).map(it=>({...it,id:it.id||uid(),note:it.note||''}));
   } else {
     ['oi-biz','oi-contact','oi-tel','oi-addr','oi-memo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     const sv2=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
@@ -1986,23 +1994,32 @@ function renderShip(){
       <!-- 품목 + 출고정보 레이아웃 -->
       <div style="display:grid;grid-template-columns:1fr 280px;gap:0;align-items:stretch">
         <!-- 품목 테이블 -->
+        <div style="margin-bottom:${o.memo?'0':'8px'}">
         <table style="width:100%;border-collapse:collapse;font-size:15px">
           <thead><tr style="background:#f5f4f0">
             <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">품목</th>
-            <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">컬러 / 로트</th>
-            <th style="padding:7px 12px;text-align:center;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de;width:80px">수량</th>
+            <th style="padding:7px 12px;text-align:left;font-weight:500;color:#999;font-size:14px;border-bottom:1px solid #e5e3de">컬러 / 로트 &nbsp;&nbsp; 수량</th>
           </tr></thead>
           <tbody>
           ${(o.items&&o.items.length>1?o.items:[{name:o.invName,color:o.color,lot:o.lotNo,qty:o.qty,unit:o.unit||'yd',base:o.basePrice,nego:o.negoPrice,supply:o.supply}]).map(it=>{
             const ihex=chex(it.color||'');
             return`<tr style="border-bottom:1px solid #f5f4f0">
-              <td style="padding:9px 12px;font-weight:600">${it.name}</td>
-              <td style="padding:9px 12px"><span style="display:inline-flex;align-items:center;gap:5px"><span class="dot" style="background:${ihex}"></span>${it.color} ${it.lot?`<span class="ltag">${fmtDate(it.lot)}</span>`:''}</span></td>
-              <td style="padding:9px 12px;text-align:center;font-weight:700">${fmtN(it.qty)} <span style="color:#aaa;font-weight:400">${it.unit||'yd'}</span></td>
+              <td style="padding:9px 12px;font-weight:600;white-space:nowrap">${it.name}</td>
+              <td style="padding:9px 12px">
+                <span style="display:inline-flex;align-items:center;gap:6px">
+                  <span class="dot" style="background:${ihex}"></span>
+                  ${it.color}
+                  ${it.lot?`<span class="ltag">${fmtDate(it.lot)}</span>`:''}
+                  ${it.note?`<span style="font-size:13px;color:#d97706;margin-left:4px">📌 ${it.note}</span>`:''}
+                </span>
+              </td>
+              <td style="padding:9px 12px;text-align:right;font-weight:700;white-space:nowrap">${fmtN(it.qty)} <span style="color:#aaa;font-weight:400;font-size:13px">${it.unit||'yd'}</span></td>
             </tr>`;
           }).join('')}
           </tbody>
         </table>
+        ${o.memo?`<div style="padding:7px 12px;background:#fffbf0;border-top:1px solid #fde68a;font-size:14px;color:#92400e">📌 ${o.memo}</div>`:''}
+        </div>
         <!-- 출고 정보 패널 -->
         <div style="background:#f4f6ff;border-left:2px solid #c7d2fe;padding:14px 16px;font-size:14px;display:flex;flex-direction:column;gap:7px">
           <div style="font-size:12px;font-weight:700;color:#4f46e5;margin-bottom:2px;letter-spacing:.3px">출고 정보</div>
@@ -2013,10 +2030,8 @@ function renderShip(){
           </div>
           ${o.bizName?`<div style="display:flex;align-items:center;gap:6px"><span style="color:#888;font-size:13px">상호</span> <b>${o.bizName}</b></div>`:''}
           ${o.contact||o.tel?`<div style="display:flex;align-items:center;gap:6px"><span style="color:#888;font-size:13px">담당</span> <span>${o.contact||''}${o.tel?` <b style="color:#3b82f6">${o.tel}</b>`:''}</span></div>`:''}
-          ${o.dueDate?`<div style="display:flex;align-items:center;gap:6px"><span style="color:#888;font-size:13px">납기</span> <b>${o.dueDate}</b></div>`:''}
+          ${o.addr?`<div style="display:flex;align-items:flex-start;gap:6px;margin-top:2px"><span style="color:#888;font-size:13px;flex-shrink:0">주소</span><b style="font-size:14px;line-height:1.5;color:#1a1a1a">${o.addr}</b></div>`:''}
           ${s.date?`<div style="display:flex;align-items:center;gap:6px"><span style="color:#888;font-size:13px">출고</span> <b style="color:#059669">${s.date}</b></div>`:''}
-          ${o.addr?`<div style="color:#555;font-size:13px;line-height:1.4">📍 ${o.addr}</div>`:''}
-          ${o.memo?`<div style="color:#d97706;font-size:13px">📌 ${o.memo}</div>`:''}
           ${s.lots&&s.lots.length?`<div style="margin-top:4px;padding-top:6px;border-top:1px solid #c7d2fe;font-size:13px;color:#555">${lots}</div>`:''}
         </div>
       </div>
