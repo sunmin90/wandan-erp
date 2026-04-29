@@ -1455,7 +1455,7 @@ function removeItemLine(lid){ordItems=ordItems.filter(l=>l.id!==lid);renderItemL
 
 function renderItemLines(){
   const el=document.getElementById('item-lines');if(!el)return;
-  if(!ordItems.length){el.innerHTML='<div style="text-align:center;padding:18px;color:#aaa;font-size:14px;border:1.5px dashed #e5e3de;border-radius:8px">+ 품목 추가 버튼을 눌러 품목을 추가하세요</div>';return;}
+  if(!ordItemLines.length){el.innerHTML='<div style="text-align:center;padding:18px;color:#aaa;font-size:14px;border:1.5px dashed #e5e3de;border-radius:8px">+ 품목 추가 버튼을 눌러 품목을 추가하세요</div>';return;}
   el.innerHTML=ordItemLines.map((line,idx)=>{
     const hex=chex(line.color||'');
     const selHtml=line.invId?`<div class="il-sel">✅ <b>${line.name}</b> <span class="dot" style="background:${hex};width:9px;height:9px;display:inline-block;vertical-align:middle"></span> ${line.color} <span class="ltag">${fmtDate(line.lot)||'-'}</span> &nbsp; 재고: <b>${fmtN(totalYd(INV.find(i=>i.id===line.invId)||{rollYards:[]}))}yd</b></div>`:'';
@@ -1682,6 +1682,12 @@ function selectItemLine(lineId, invId){
   calcAmt();
 }
 
+function updateLineNote(lid){
+  var line=(ordItemLines||[]).find(function(l){return l.id===lid;});
+  if(!line)return;
+  var nel=document.getElementById('ilnote-'+lid);
+  if(nel)line.note=nel.value;
+}
 function updateLine(lineId){
   const line = ordItemLines.find(l=>l.id===lineId);
   if(!line) return;
