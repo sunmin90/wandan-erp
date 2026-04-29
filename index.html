@@ -1466,10 +1466,9 @@ function renderItemLines(){
       <div class="fr"><label style="font-size:14px">네고가/yd</label><input id="ilnego-${line.id}" type="number" min="0" placeholder="네고" value="${line.nego||''}" oninput="updateLine('${line.id}')" style="width:100%;padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit;outline:none"></div>
     </div>
     ${line.qty>0?`<div class="il-sum"><span>${line.name} / ${line.color} · ${fmtN(line.qty)}${line.unit}</span><span style="font-weight:700;color:#3b82f6">${fmtN(line.supply||0)}원</span></div>`:''}
-    <input id="ilnote-${line.id}" placeholder="품목 메모 (선택)" oninput="updateLineNote('${line.id}')" style="width:100%;margin-top:6px;padding:5px 8px;border:1px solid #e5e3de;border-radius:6px;font-size:14px;font-family:inherit;outline:none">`
-    :''
-    ;
-    return`<div class="il" id="il-${line.id}">
+    <div style="margin-top:6px"><input id="ilnote-${line.id}" placeholder="품목 메모 (선택)" oninput="updateLineNote('${line.id}')" style="width:100%;padding:5px 8px;border:1px solid #e5e3de;border-radius:6px;font-size:14px;font-family:inherit;outline:none"></div>`
+    :'';
+        return`<div class="il" id="il-${line.id}">
       <button class="ildel" onclick="removeItemLine('${line.id}')">×</button>
       <div class="ilno">${idx+1}번 품목${line.name?' — '+line.name+' / '+line.color:''}</div>
       <div class="il-srch-wrap">
