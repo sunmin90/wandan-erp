@@ -8,7 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:13px;color:#1a1a1a;background:#f0efeb;display:flex;height:100vh;overflow:hidden}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:15px;color:#1a1a1a;background:#f0efeb;display:flex;height:100vh;overflow:hidden}
 #sb{width:196px;background:#1c1c1e;display:flex;flex-direction:column;flex-shrink:0}
 .logo{padding:17px 15px 13px;border-bottom:1px solid #2c2c2e}
 .logo .t{font-size:14px;font-weight:700;color:#fff}
@@ -38,16 +38,16 @@ nav a .ico{width:16px;text-align:center;font-size:13px}
 .ch{padding:11px 14px;border-bottom:1px solid #f0ede8;display:flex;align-items:center;gap:8px;background:#fdfcfb;flex-wrap:wrap}
 .ch h2{font-size:12px;font-weight:600;flex:1;color:#333}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{padding:7px 11px;text-align:left;font-weight:500;font-size:10px;color:#999;border-bottom:1px solid #f0ede8;text-transform:uppercase;letter-spacing:.4px;background:#fdfcfb;white-space:nowrap}
-td{padding:9px 11px;border-bottom:1px solid #f5f4f0;color:#222;vertical-align:middle}
+th{padding:8px 12px;text-align:left;font-weight:500;font-size:12px;color:#999;border-bottom:1px solid #f0ede8;text-transform:uppercase;letter-spacing:.4px;background:#fdfcfb;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #f5f4f0;color:#222;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fdfcfb}
-.b{display:inline-block;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500}
+.b{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
 .b.g{background:#d1fae5;color:#065f46}.b.r{background:#fee2e2;color:#991b1b}
 .b.a{background:#fef3c7;color:#92400e}.b.bl{background:#dbeafe;color:#1e40af}
 .b.gr{background:#f3f4f6;color:#4b5563}.b.p{background:#ede9fe;color:#5b21b6}
 .b.t{background:#d1fae5;color:#065f46}.b.o{background:#fff7ed;color:#9a3412}
-.btn{padding:5px 10px;border-radius:6px;border:1px solid #e0ddd8;cursor:pointer;font-size:11px;font-family:inherit;background:#fff;color:#555;white-space:nowrap;transition:background .1s}
+.btn{padding:6px 12px;border-radius:6px;border:1px solid #e0ddd8;cursor:pointer;font-size:13px;font-family:inherit;background:#fff;color:#555;white-space:nowrap;transition:background .1s}
 .btn:hover{background:#f5f4f0}
 .btn.p{background:#3b82f6;color:#fff;border-color:#3b82f6}.btn.p:hover{background:#2563eb}
 .btn.d{background:#fee2e2;color:#dc2626;border-color:#fecaca}.btn.d:hover{background:#fecaca}
@@ -60,7 +60,7 @@ tr:hover td{background:#fdfcfb}
 .fsel:focus{border-color:#3b82f6}
 .fsel:disabled{opacity:.4;cursor:not-allowed}
 .tabs{display:flex;border-bottom:2px solid #f0ede8;margin-bottom:12px}
-.tab{padding:8px 15px;font-size:12px;font-weight:500;cursor:pointer;color:#999;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;user-select:none}
+.tab{padding:9px 17px;font-size:13px;font-weight:500;cursor:pointer;color:#999;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;user-select:none}
 .tab:hover{color:#555}
 .tab.on{color:#3b82f6;border-bottom-color:#3b82f6}
 .tab .tc{display:inline-block;font-size:9px;background:#f0ede8;color:#888;border-radius:8px;padding:1px 5px;margin-left:4px;font-weight:600}
@@ -78,7 +78,7 @@ tr:hover td{background:#fdfcfb}
 .mf{padding:11px 18px;border-top:1px solid #f0ede8;display:flex;justify-content:flex-end;gap:7px;background:#fdfcfb;border-radius:0 0 12px 12px;position:sticky;bottom:0;z-index:2}
 .fr{margin-bottom:11px}
 .fr label{display:block;font-size:11px;color:#666;margin-bottom:3px;font-weight:500}
-.fr input,.fr select,.fr textarea{width:100%;padding:7px 9px;border:1px solid #ddd;border-radius:7px;background:#fafaf8;color:#111;font-size:12px;font-family:inherit;outline:none;transition:border .12s}
+.fr input,.fr select,.fr textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:7px;background:#fafaf8;color:#111;font-size:13px;font-family:inherit;outline:none;transition:border .12s}
 .fr input:focus,.fr select:focus,.fr textarea:focus{border-color:#3b82f6;background:#fff}
 .fr input[readonly]{background:#f5f4f0;color:#555;cursor:default}
 .fr textarea{resize:vertical;min-height:54px}
@@ -478,10 +478,10 @@ tr:hover td{background:#fdfcfb}
     </div>
     <div class="fg fg2">
       <div class="fr"><label>공장 (매입 거래처)</label><select id="fi-factory"><option value="">선택</option></select></div>
-      <div class="fr"><label>로트번호</label><input id="fi-lot" placeholder="예: 2024-0315-A"></div>
+      <div class="fr"><label>로트번호 <span style="font-size:10px;color:#aaa">= 입고일(YYYY-MM-DD)</span></label><input id="fi-lot" placeholder="예: 2024-03-15" oninput="syncLotToDate(this.value)"></div>
     </div>
     <div class="fg fg2">
-      <div class="fr"><label>입고일</label><input id="fi-date" type="date"></div>
+      <div class="fr"><label>입고일 <span style="font-size:10px;color:#aaa">(로트번호와 동일)</span></label><input id="fi-date" type="date" onchange="syncLotDate(this.value)"></div>
       <div class="fr"><label>후가공 여부</label><select id="fi-proc" onchange="toggleFiProc()"><option value="N">없음</option><option value="Y">있음</option></select></div>
     </div>
     <div id="fi-proc-area" style="display:none">
@@ -542,7 +542,7 @@ tr:hover td{background:#fdfcfb}
           <div style="display:flex;gap:7px;margin-bottom:6px">
             <input id="new-cust-name" placeholder="상호명 *" style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-family:inherit;outline:none">
             <input id="new-cust-contact" placeholder="담당자" style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-family:inherit;outline:none">
-            <input id="new-cust-tel" placeholder="연락처" style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-family:inherit;outline:none">
+            <input id="new-cust-tel" placeholder="연락처" oninput="fmtTel(this)" style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-family:inherit;outline:none">
             <select id="new-cust-grade" style="flex:0 0 80px;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:11px;font-family:inherit;outline:none;background:#fff">
               <option value="기본">기본</option><option value="소매">소매</option>
               <option value="네이버">네이버</option><option value="쿠팡">쿠팡</option><option value="자사몰">자사몰</option><option value="VIP">VIP</option>
@@ -592,7 +592,7 @@ tr:hover td{background:#fdfcfb}
     </div>
     <div class="fg fg2">
       <div class="fr"><label>담당자</label><input id="oi-contact" placeholder="담당자"></div>
-      <div class="fr"><label>연락처</label><input id="oi-tel" placeholder="010-0000-0000"></div>
+      <div class="fr"><label>연락처</label><input id="oi-tel" placeholder="010-0000-0000" oninput="fmtTel(this)"></div>
     </div>
     <div class="fr"><label>주소</label><input id="oi-addr"></div>
     <div class="fr"><label>메모</label><textarea id="oi-memo"></textarea></div>
@@ -1175,70 +1175,67 @@ function showRolls(id){
   const maxY=Math.max(...rolls,1);
   const cost=itemCost(item);const margin=itemMargin(item);
   document.getElementById('m-roll-title').innerHTML=`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${hex};width:12px;height:12px"></span>${item.name} / ${item.color}</span>`;
-  document.getElementById('m-roll-body').innerHTML=`
-    <!-- 기본 정보 -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #f0ede8">
-      ${item.code?`<span style="font-size:11px;background:#dbeafe;border-radius:4px;padding:2px 8px;color:#1d4ed8;font-weight:700;font-family:monospace">${item.code}</span>`:''}
-      ${vend?`<span style="background:#d1fae5;border-radius:5px;padding:2px 8px;font-size:11px;color:#065f46;font-weight:500">🏭 ${vend.name}</span>`:''}
-      ${item.lot?`<span class="ltag" style="font-size:11px">${item.lot}</span>`:''}
-      ${item.date?`<span style="font-size:11px;color:#aaa">${item.date}</span>`:''}
-      ${item.width?`<span style="font-size:11px;background:#e0f2fe;border-radius:4px;padding:2px 8px;color:#0369a1;font-weight:600">폭 ${item.width}${item.widthUnit||'inch'}</span>`:''}
-      ${item.proc==='Y'?`<span class="b a">${item.procType||'후가공'} ${fvend?'— '+fvend.name:''}</span>`:''}
-    </div>
-    <!-- 요약 스탯 -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
-      <div style="background:#f0f4ff;border-radius:7px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#1d4ed8">${rolls.length}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 롤 수</div></div>
-      <div style="background:#f0fdf4;border-radius:7px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#059669">${fmtN(total)}</div><div style="font-size:10px;color:#aaa;margin-top:2px">총 야드</div></div>
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:17px;font-weight:700">${rolls.length?fmtN(Math.round(total/rolls.length)):'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">평균 yd/롤</div></div>
-      <div style="background:#f9f8f5;border-radius:7px;padding:10px;text-align:center"><div style="font-size:13px;font-weight:700">${rolls.length?Math.min(...rolls).toFixed(1)+'~'+Math.max(...rolls).toFixed(1):'-'}</div><div style="font-size:10px;color:#aaa;margin-top:2px">최소~최대 yd</div></div>
-    </div>
-    <!-- 롤별 테이블 (이미지 스타일) -->
-    <div style="margin-bottom:14px">
-      <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">롤별 수량</div>
-      <table style="width:100%;border-collapse:collapse;font-size:12px">
-        <thead><tr style="background:#f5f4f0">
-          <th style="padding:7px 12px;text-align:center;font-size:10px;color:#888;font-weight:500;width:50px">롤</th>
-          <th style="padding:7px 12px;text-align:right;font-size:10px;color:#888;font-weight:500">야드 (yd)</th>
-          <th style="padding:7px 12px;text-align:left;font-size:10px;color:#888;font-weight:500">그래프</th>
-        </tr></thead>
-        <tbody>
-          ${rolls.map((y,i)=>`
-          <tr style="border-bottom:1px solid #f5f4f0${i===rolls.length-1?';border-bottom:none':''}">
-            <td style="padding:8px 12px;text-align:center;font-weight:600;color:#1d4ed8;font-size:13px">${i+1}</td>
-            <td style="padding:8px 12px;text-align:right;font-weight:700;font-size:14px">${y.toFixed(1)}</td>
-            <td style="padding:8px 12px">
-              <div style="height:6px;background:#f0ede8;border-radius:3px;width:100%;overflow:hidden">
-                <div style="height:100%;background:${y===Math.max(...rolls)?'#059669':'#3b82f6'};border-radius:3px;width:${Math.round(y/maxY*100)}%"></div>
-              </div>
-            </td>
-          </tr>`).join('')}
-          <tr style="background:#f0f4ff;font-weight:700">
-            <td style="padding:7px 12px;text-align:center;font-size:11px;color:#1d4ed8">합계</td>
-            <td style="padding:7px 12px;text-align:right;font-size:14px;color:#1d4ed8">${fmtN(total)}</td>
-            <td style="padding:7px 12px;font-size:10px;color:#aaa">${rolls.length}롤</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <!-- 원가/메모 -->
-    <div class="cbox">
-      <div class="cr"><span class="cl">원가 (생지×1.1 + 염색 + 가공)</span><span style="color:#3b82f6">${fmt(cost)}</span></div>
-      <div class="cr"><span class="cl">판매가</span><span>${fmt(item.price)}</span></div>
-      <div class="cr"><span class="cl">마진율</span><span class="${margin!=null&&margin>=30?'mc-g':margin!=null&&margin>=15?'mc-m':'mc-l'}">${margin!=null?margin.toFixed(1)+'%':'-'}</span></div>
-    </div>
-    ${item.memo?`<div style="margin-top:10px;background:#fef9c3;border-radius:7px;padding:9px 12px;font-size:12px;color:#92400e">📝 ${item.memo}</div>`:''}`;
+  document.getElementById('m-roll-body').innerHTML=(function(){
+    // 기본 정보
+    var info='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #f0ede8">';
+    if(item.code)info+='<span style="font-size:12px;background:#dbeafe;border-radius:4px;padding:2px 9px;color:#1d4ed8;font-weight:700;font-family:monospace">'+item.code+'</span>';
+    if(vend)info+='<span style="background:#d1fae5;border-radius:5px;padding:2px 9px;font-size:12px;color:#065f46;font-weight:500">🏭 '+vend.name+'</span>';
+    if(item.lot)info+='<span style="font-size:12px;background:#f0ede8;border-radius:4px;padding:2px 9px;font-family:monospace">'+item.lot+'</span>';
+    if(item.width)info+='<span style="font-size:12px;background:#e0f2fe;border-radius:4px;padding:2px 9px;color:#0369a1;font-weight:600">폭 '+item.width+(item.widthUnit||'inch')+'</span>';
+    if(item.proc==='Y')info+='<span style="font-size:12px;background:#fef3c7;border-radius:4px;padding:2px 9px;color:#92400e">'+(item.procType||'후가공')+(fvend?' — '+fvend.name:'')+'</span>';
+    info+='</div>';
+
+    // 요약 스탯
+    var stats='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">';
+    stats+='<div style="background:#f0f4ff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:#1d4ed8">'+rolls.length+'</div><div style="font-size:11px;color:#aaa;margin-top:2px">총 롤 수</div></div>';
+    stats+='<div style="background:#f0fdf4;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:800;color:#059669">'+fmtN(total)+'</div><div style="font-size:11px;color:#aaa;margin-top:2px">총 야드</div></div>';
+    stats+='<div style="background:#f9f8f5;border-radius:8px;padding:12px;text-align:center"><div style="font-size:19px;font-weight:700">'+(rolls.length?fmtN(Math.round(total/rolls.length)):'-')+'</div><div style="font-size:11px;color:#aaa;margin-top:2px">평균 yd/롤</div></div>';
+    stats+='<div style="background:#f9f8f5;border-radius:8px;padding:12px;text-align:center"><div style="font-size:16px;font-weight:700">'+(rolls.length?Math.min.apply(null,rolls).toFixed(1)+'~'+Math.max.apply(null,rolls).toFixed(1):'-')+'</div><div style="font-size:11px;color:#aaa;margin-top:2px">최소~최대 yd</div></div>';
+    stats+='</div>';
+
+    // 롤별 가로 테이블 (이미지처럼: 행=품목/color/폭, 열=롤1,롤2...)
+    var tbl='<div style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">롤별 수량</div>';
+    tbl+='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:13px;min-width:100%">';
+    // 헤더행: 구분 | 롤1 | 롤2 | ...
+    tbl+='<thead><tr style="background:#f5f4f0">';
+    tbl+='<th style="padding:9px 14px;text-align:left;font-weight:600;color:#555;border:1px solid #e5e3de;white-space:nowrap">구분</th>';
+    rolls.forEach(function(_,i){
+      tbl+='<th style="padding:9px 14px;text-align:center;font-weight:600;color:#1d4ed8;border:1px solid #e5e3de;min-width:60px">'+(i+1)+'롤</th>';
+    });
+    tbl+='<th style="padding:9px 14px;text-align:center;font-weight:700;color:#059669;border:1px solid #e5e3de;background:#f0fdf4">합계</th>';
+    tbl+='</tr></thead><tbody>';
+    // 데이터행: 야드
+    tbl+='<tr>';
+    tbl+='<td style="padding:9px 14px;font-weight:600;border:1px solid #e5e3de;white-space:nowrap">야드 (YD)</td>';
+    rolls.forEach(function(y){
+      tbl+='<td style="padding:9px 14px;text-align:center;font-weight:700;font-size:14px;border:1px solid #e5e3de">'+y.toFixed(1)+'</td>';
+    });
+    tbl+='<td style="padding:9px 14px;text-align:center;font-weight:800;font-size:15px;color:#059669;border:1px solid #e5e3de;background:#f0fdf4">'+fmtN(total)+'</td>';
+    tbl+='</tr></tbody></table></div>';
+
+    // 원가/메모
+    var footer='<div class="cbox" style="margin-top:14px">';
+    footer+='<div class="cr"><span class="cl">원가 (생지×1.1 + 염색 + 가공)</span><span style="color:#3b82f6">'+fmt(cost)+'</span></div>';
+    footer+='<div class="cr"><span class="cl">판매가</span><span>'+fmt(item.price)+'</span></div>';
+    footer+='<div class="cr"><span class="cl">마진율</span><span class="'+(margin!=null&&margin>=30?'mc-g':margin!=null&&margin>=15?'mc-m':'mc-l')+'">'+(margin!=null?margin.toFixed(1)+'%':'-')+'</span></div>';
+    footer+='</div>';
+    if(item.memo)footer+='<div style="margin-top:10px;background:#fef9c3;border-radius:7px;padding:9px 12px;font-size:13px;color:#92400e">📝 '+item.memo+'</div>';
+
+    return info+stats+tbl+footer;
+  })();
   openM('m-roll');
 }
 
 // ══ 엑셀 업로드/다운로드 ══
 function downloadTemplate(){
   const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet([
-    ['품목명','컬러','폭(숫자)','폭단위(inch/cm)','로트번호','입고일(YYYY-MM-DD)','공장명','후가공(Y/N)','후가공종류','생지원단가(VAT별도)','염색단가','가공단가','판매가','롤1(yd)','롤2(yd)','롤3(yd)','롤4(yd)','롤5(yd)','메모'],
-    ['TC 브로드','화이트',44,'inch','2024-0315-A','2024-03-15','덕부섬유','N','',900,250,0,1800,281,241,206,'','',''],
-    ['캔버스 20수','베이지',58,'inch','2024-0220-A','2024-02-20','한솔섬유','Y','방축',1200,320,150,2500,180,195,'','','','수출용'],
-  ]);
-  ws['!cols']=[{wch:14},{wch:10},{wch:8},{wch:12},{wch:16},{wch:16},{wch:12},{wch:10},{wch:10},{wch:16},{wch:10},{wch:10},{wch:10},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:14}];
+  const rollHdrs=['롤1(yd)','롤2(yd)','롤3(yd)','롤4(yd)','롤5(yd)','롤6(yd)','롤7(yd)','롤8(yd)','롤9(yd)','롤10(yd)','롤11(yd)','롤12(yd)','롤13(yd)','롤14(yd)','롤15(yd)','롤16(yd)','롤17(yd)','롤18(yd)','롤19(yd)','롤20(yd)'];
+  const headers=['1차카테고리','2차카테고리','품목명','컬러','폭(숫자)','폭단위(inch/cm)','로트번호(YYYY-MM-DD)','공장명','후가공(Y/N)','후가공종류','생지원단가(VAT별도)','염색단가','가공단가','판매가'].concat(rollHdrs).concat(['메모']);
+  const row1=['평직','브로드','TC 브로드','화이트',44,'inch','2024-03-15','덕부섬유','N','',900,250,0,1800,281,241,206,257,193,320,275,248,'','','','','','','','',''];
+  const row2=['트윌','20수 트윌','캔버스 20수','베이지',58,'inch','2024-02-20','한솔섬유','Y','방축',1200,320,150,2500,180,195,'','','','','','','','','','','','','','','수출용'];
+  const ws=XLSX.utils.aoa_to_sheet([headers,row1,row2]);
+  const cols=[{wch:12},{wch:12},{wch:14},{wch:10},{wch:7},{wch:12},{wch:14},{wch:12},{wch:8},{wch:10},{wch:16},{wch:10},{wch:10},{wch:10}].concat(Array(20).fill({wch:7})).concat([{wch:14}]);
+  ws['!cols']=cols;
   XLSX.utils.book_append_sheet(wb,ws,'재고등록양식');
   XLSX.writeFile(wb,'재고_일괄등록_양식.xlsx');
 }
@@ -1250,36 +1247,60 @@ function uploadExcel(input){
     const ws=wb.Sheets[wb.SheetNames[0]];
     const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'yyyy-mm-dd'}).slice(1);
     let added=0;
-    rows.forEach(function(r){
-      const name=(r[0]||'').toString().trim();
-      const color=(r[1]||'').toString().trim();
+    rows.forEach(function(r,ri){
+      // 새 컬럼 순서: 0:1차카테고리 1:2차카테고리 2:품목명 3:컬러 4:폭 5:폭단위 6:로트(=입고일) 7:공장명 8:후가공 9:후가공종류 10:생지 11:염색 12:가공 13:판매가 14~33:롤1~20 34:메모
+      const cat1Name=(r[0]||'').toString().trim();
+      const cat2Name=(r[1]||'').toString().trim();
+      const name=(r[2]||'').toString().trim();
+      const color=(r[3]||'').toString().trim();
       if(!name||!color)return;
-      // 컬럼: 0품목명 1컬러 2폭 3폭단위 4로트번호 5입고일 6공장명 7후가공 8후가공종류 9생지 10염색 11가공 12판매가 13~17롤 18메모
+      // 롤 수량 (최대 20개)
       const rolls=[];
-      for(let i=13;i<=17;i++){const v=parseFloat(r[i]);if(v>0)rolls.push(v);}
-      const lotVal=(r[4]||'').toString().trim();
-      let dateVal=(r[5]||'').toString().trim();
-      if(!dateVal||!/^\d{4}-\d{2}-\d{2}$/.test(dateVal))dateVal=today();
-      const factoryName=(r[6]||'').toString().trim();
+      for(let i=14;i<=33;i++){const v=parseFloat(r[i]);if(v>0)rolls.push(v);}
+      // 로트번호 = 입고일
+      let lotVal=(r[6]||'').toString().trim();
+      // 날짜 형식 확인 및 정규화
+      if(lotVal&&!/^\d{4}-\d{2}-\d{2}$/.test(lotVal)){
+        // YYYY/MM/DD 또는 YYYYMMDD 형식 처리
+        const cleaned=lotVal.replace(/[/.\s]/g,'-');
+        if(/^\d{4}-\d{2}-\d{2}$/.test(cleaned))lotVal=cleaned;
+      }
+      const dateVal=lotVal||today();
+      // 카테고리 매칭
+      let catP='',catC='';
+      if(cat1Name){
+        const p=CAT.find(function(c){return c.name===cat1Name;});
+        if(p){
+          catP=p.id;
+          if(cat2Name){const c2=(p.children||[]).find(function(c){return c.name===cat2Name;});if(c2)catC=c2.id;}
+        }
+      }
+      const factoryName=(r[7]||'').toString().trim();
       const vend=VEND.find(function(v){return v.type==='factory'&&v.name===factoryName;});
+      // 품목코드 자동 생성
+      const d=new Date();
+      const ymd=d.getFullYear().toString().slice(2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+      let code='ITM-'+ymd+'-'+String(INV.length+added+1).padStart(4,'0');
+      while(INV.find(function(i){return i.code===code;})){code='ITM-'+ymd+'-'+String(Math.floor(Math.random()*9000)+1000);}
       const item={
-        id:uid(),catP:'',catC:'',
+        id:uid(),code:code,
+        catP:catP,catC:catC,
         name:name,color:color,
-        width:parseFloat(r[2])||null,
-        widthUnit:(r[3]||'inch').toString().trim()||'inch',
+        width:parseFloat(r[4])||null,
+        widthUnit:(r[5]||'inch').toString().trim()||'inch',
         lot:lotVal,date:dateVal,
         factoryId:vend?vend.id:'',
-        proc:(r[7]||'N').toString().trim().toUpperCase()==='Y'?'Y':'N',
-        finishVendId:'',procType:(r[8]||'').toString().trim(),
-        costGreige:parseFloat(r[9])||0,costDye:parseFloat(r[10])||0,
-        costProc:parseFloat(r[11])||0,price:parseFloat(r[12])||0,
+        proc:(r[8]||'N').toString().trim().toUpperCase()==='Y'?'Y':'N',
+        finishVendId:'',procType:(r[9]||'').toString().trim(),
+        costGreige:parseFloat(r[10])||0,costDye:parseFloat(r[11])||0,
+        costProc:parseFloat(r[12])||0,price:parseFloat(r[13])||0,
         rollYards:rolls.length?rolls:[],
-        memo:(r[18]||'').toString().trim()
+        memo:(r[34]||'').toString().trim()
       };
       INV.unshift(item);added++;
     });
     sv();renderInv();input.value='';
-    alert(added+'개 품목이 등록되었습니다.\n\n※ 공장명이 거래처에 등록되지 않은 경우 공장 필드가 비어있습니다.\n거래처 관리에서 먼저 공장을 등록해주세요.');
+    alert(added+'개 품목이 등록되었습니다.\n품목코드가 자동 생성되었습니다.\n\n※ 카테고리/공장명이 미등록인 경우 해당 필드가 비어있을 수 있습니다.');
   };
   reader.readAsBinaryString(file);
 }
