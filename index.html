@@ -1082,6 +1082,8 @@ function renderInv(){
     const stBadge=yd<=0?'<span class="b r">소진</span>':rc<=2?'<span class="b a">부족</span>':'<span class="b g">보유</span>';
     const procTxt=item.proc==='Y'?`<span class="b a">${item.procType||'후가공'}</span>`:'<span style="color:#ddd;font-size:14px">없음</span>';
     return`<tr>
+      <td style="text-align:center"><input type="checkbox" class="inv-chk" data-id="${item.id}" style="accent-color:#3b82f6;width:14px;height:14px;cursor:pointer"></td>
+      <td style="width:80px;min-width:80px"><span style="font-family:monospace;background:#dbeafe;border-radius:4px;padding:2px 6px;color:#1d4ed8;font-weight:700;font-size:12px;white-space:nowrap">${item.code||'?'}</span></td>
       <td>${catLabel}</td>
       <td><b>${item.name}</b></td>
       <td><span class="clink" onclick="showRolls('${item.id}')"><span class="dot" style="background:${hex}"></span>${item.color}</span></td>
