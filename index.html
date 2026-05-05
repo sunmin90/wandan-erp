@@ -234,17 +234,37 @@ tr:hover td{background:#fafaf8}
 
       <!-- ══ 출고 관리 ══ -->
       <div class="page" id="p-ship">
-        <div class="fb">
-          <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:14px">
-            <input type="checkbox" id="ship-sel-all" onchange="document.querySelectorAll('.ship-chk').forEach(function(c){c.checked=this.checked;}.bind(this))" style="width:14px;height:14px;accent-color:#1d4ed8"> 전체선택
-          </label>
-          <button class="btn sm p" onclick="printSelectedShips()">🖨️ 작업지시서 출력</button>
-          <button class="btn g sm" onclick="closeShipDay()">✅ 일괄 마감 (재고반영)</button>
+        <!-- 대시보드 -->
+        <div class="stat-grid" style="margin-bottom:12px">
+          <div class="stat-card"><div class="label">출고 대기</div><div class="num" id="sh-wait">0</div></div>
+          <div class="stat-card"><div class="label">준비중</div><div class="num" id="sh-ready">0</div></div>
+          <div class="stat-card"><div class="label">출고완료</div><div class="num" id="sh-done">0</div></div>
+          <div class="stat-card"><div class="label">마감완료</div><div class="num" id="sh-closed">0</div></div>
+        </div>
+        <!-- 필터 -->
+        <div class="fb" style="margin-bottom:12px">
+          <select id="ship-status-f" onchange="renderShip()" class="btn sm" style="font-size:13px">
+            <option value="">전체 상태</option>
+            <option value="wait">출고 대기</option>
+            <option value="ready">준비중</option>
+            <option value="done">출고완료</option>
+            <option value="closed">마감완료</option>
+          </select>
+          <input id="ship-date-f" type="date" onchange="renderShip()" class="btn sm" style="font-size:13px">
+          <button class="btn sm" onclick="document.getElementById('ship-date-f').value=today();renderShip()">오늘</button>
+          <button class="btn sm" onclick="document.getElementById('ship-date-f').value='';renderShip()">전체</button>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:13px">
+              <input type="checkbox" id="ship-sel-all" onchange="document.querySelectorAll('.ship-chk').forEach(function(c){c.checked=this.checked;}.bind(this))" style="width:14px;height:14px;accent-color:#1d4ed8"> 전체선택
+            </label>
+            <button class="btn sm p" onclick="printSelectedShips()">🖨️ 작업지시서 출력</button>
+            <button class="btn g sm" onclick="closeShipDay()">✅ 일괄 마감 (재고반영)</button>
+          </div>
         </div>
         <div id="ship-list"></div>
       </div>
 
-      <!-- ══ 매입 관리 ══ -->
+<!-- ══ 매입 관리 ══ -->
       <div class="page" id="p-buy"><div class="card empty">매입 관리 (추후 구현 예정)</div></div>
 
       <!-- ══ 고객 관리 ══ -->
@@ -520,6 +540,14 @@ function closeM(id){
 // ══════════════════════════════════════════════════════
 var invAllRows=[], curInvPage=1, INV_PAGE=100;
 
+
+function resetInvFilter(){
+  var s1=document.getElementById('if-cat1');
+  var s2=document.getElementById('if-cat2');
+  if(s1)s1.value='';
+  if(s2){s2.innerHTML='<option value="">전체 세부</option>';}
+  renderInv();
+}
 function populateInvFilter(){
   var s1=document.getElementById('if-cat1');
   if(!s1)return;
@@ -942,14 +970,14 @@ function renderOrd(){
       // 상위행: 합계
       var totQty=items.reduce(function(a,i){return a+(i.qty||0);},0);
       var totAmt=items.reduce(function(a,i){return a+(i.supply||0);},0);
-      itemRows+='<tr style="background:#f9f8f5"><td></td><td colspan="2" style="font-weight:600;font-size:13px;color:#555">'+items.length+'개 품목</td><td style="text-align:right;font-weight:700">'+fmtN(totQty)+'</td><td style="text-align:right;font-weight:700;color:#1d4ed8">'+fmtN(totAmt)+'원</td></tr>';
+      itemRows+='<tr style="background:#f9f8f5"><td></td><td colspan="2" style="font-weight:600;font-size:13px;color:#555">'+items.length+'개 품목</td><td style="text-align:right;font-weight:700">'+fmtN(totQty)+'</td><td></td><td style="text-align:right;font-weight:700;color:#1d4ed8">'+fmtN(totAmt)+'원</td></tr>';
       items.forEach(function(it,i){
-        var hex=chex(it.color||'');
-        itemRows+='<tr style="background:#fafaf8"><td style="color:#aaa;font-size:12px;padding-left:16px">└'+(i+1)+'</td><td><b>'+it.name+'</b></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span class="dot" style="background:'+hex+'"></span>'+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+(it.note?' <span style="color:#d97706;font-size:12px">📌 '+it.note+'</span>':'')+'</span></td><td style="text-align:right">'+fmtN(it.qty)+' <span style="color:#aaa;font-size:12px">'+(it.unit||'yd')+'</span></td><td style="text-align:right;color:#555">'+fmtN(it.supply)+'원</td></tr>';
+        var hex=chex(it.color||''),unitPrice=it.nego||it.base||0;
+        itemRows+='<tr style="background:#fafaf8"><td style="color:#aaa;font-size:12px;padding-left:16px">└'+(i+1)+'</td><td><b>'+it.name+'</b></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span class="dot" style="background:'+hex+'"></span>'+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+(it.note?' <span style="color:#d97706;font-size:12px">📌 '+it.note+'</span>':'')+'</span></td><td style="text-align:right">'+fmtN(it.qty)+' <span style="color:#aaa;font-size:12px">'+(it.unit||'yd')+'</span></td><td style="text-align:right;color:#555">'+(unitPrice?fmtN(unitPrice)+'원':'-')+'</td><td style="text-align:right;color:#1d4ed8;font-weight:600">'+fmtN(it.supply)+'원</td></tr>';
       });
     }else{
-      var it=items[0],hex=chex(it.color||'');
-      itemRows+='<tr><td></td><td><b>'+it.name+'</b></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span class="dot" style="background:'+hex+'"></span>'+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+(it.note?' <span style="color:#d97706;font-size:12px">📌 '+it.note+'</span>':'')+'</span></td><td style="text-align:right">'+fmtN(it.qty)+' <span style="color:#aaa;font-size:12px">'+(it.unit||'yd')+'</span></td><td style="text-align:right;color:#1d4ed8;font-weight:700">'+fmtN(o.total||o.supply||0)+'원</td></tr>';
+      var it=items[0],hex=chex(it.color||''),unitPrice=it.nego||it.base||0;
+      itemRows+='<tr><td></td><td><b>'+it.name+'</b></td><td><span style="display:inline-flex;align-items:center;gap:5px"><span class="dot" style="background:'+hex+'"></span>'+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+(it.note?' <span style="color:#d97706;font-size:12px">📌 '+it.note+'</span>':'')+'</span></td><td style="text-align:right">'+fmtN(it.qty)+' <span style="color:#aaa;font-size:12px">'+(it.unit||'yd')+'</span></td><td style="text-align:right;color:#555">'+(unitPrice?fmtN(unitPrice)+'원':'-')+'</td><td style="text-align:right;font-weight:700;color:#1d4ed8">'+fmtN(it.supply||o.supply||0)+'원</td></tr>';
     }
     return '<div class="card" style="padding:0;overflow:hidden;margin-bottom:10px">'
       +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #f0ede8;flex-wrap:wrap">'
@@ -988,6 +1016,7 @@ function restoreOrd(id){var o=ORD.find(function(x){return x.id===id;});if(o)o.st
 function cancelOrd(id){if(!confirm('취소?'))return;var o=ORD.find(function(x){return x.id===id;});if(o)o.status='cancelled';sv();renderOrd();}
 function deleteOrd(id){if(!confirm('삭제?'))return;ORD=ORD.filter(function(o){return o.id!==id;});sv();renderOrd();}
 function togglePaid(id){var o=ORD.find(function(x){return x.id===id;});if(o)o.paid=!o.paid;sv();renderOrd();}
+function setPaid(id,val){var o=ORD.find(function(x){return x.id===id;});if(o)o.paid=val;sv();renderOrd();}
 
 // ══ 주문 등록 모달 ══
 function openOrdModal(id){
@@ -1040,7 +1069,7 @@ function renderItemLines(){
       :'<div style="margin-bottom:8px"><div style="display:flex;gap:6px;margin-bottom:5px"><select onchange="filterItemCat(\''+line.id+'\',this.value)" style="padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit"><option value="">전체 카테고리</option>'+CAT.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('')+'</select><input id="ils-'+line.id+'" placeholder="품목명/컬러 검색..." oninput="searchItems(\''+line.id+'\',this.value)" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;outline:none"></div><div id="ilr-'+line.id+'" style="display:none;max-height:150px;overflow-y:auto;border:1px solid #e0ddd8;border-radius:7px"></div></div>';
     var qtyHtml=line.invId
       ?'<div class="il-grid"><div class="fr"><label style="font-size:12px">단위</label><select onchange="updateLine(\''+line.id+'\',\'unit\',this.value)" style="padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit"><option value="yd"'+(line.unit==='yd'?' selected':'')+'>야드</option><option value="roll"'+(line.unit==='roll'?' selected':'')+'>롤</option><option value="m"'+(line.unit==='m'?' selected':'')+'>미터</option></select></div><div class="fr"><label style="font-size:12px">수량 *</label><input type="number" min="0" step="0.1" value="'+(line.qty||'')+'" oninput="updateLine(\''+line.id+'\',\'qty\',this.value)" style="padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;outline:none"></div><div class="fr"><label style="font-size:12px">기본가/yd</label><input readonly value="'+(line.base||'')+'" style="padding:5px 7px;border:1px solid #f0ede8;border-radius:6px;font-size:13px;background:#f9f8f5;color:#888;font-family:inherit"></div><div class="fr"><label style="font-size:12px">네고가/yd</label><input type="number" min="0" value="'+(line.nego||'')+'" oninput="updateLine(\''+line.id+'\',\'nego\',this.value)" style="padding:5px 7px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit;outline:none"></div></div>'
-        +(line.qty>0?'<div class="il-sum"><span>'+line.name+' / '+line.color+' · '+fmtN(line.qty)+(line.unit||'yd')+'</span><span style="font-weight:700;color:#1d4ed8">'+fmtN(line.supply||0)+'원</span></div>':'')
+        +'<div class="il-sum" id="il-sum-'+line.id+'" style="'+(line.qty>0?'':'display:none')+'"><span class="il-sum-txt">'+line.name+' / '+line.color+' · '+fmtN(line.qty)+(line.unit||'yd')+'</span><span class="il-sum-amt" style="font-weight:700;color:#1d4ed8">'+fmtN(line.supply||0)+'원</span></div>'
         +'<div class="il-note"><input placeholder="품목별 지시사항 메모" value="'+(line.note||'')+'" oninput="updateLine(\''+line.id+'\',\'note\',this.value)"></div>'
       :'';
     return '<div class="il-box"><div class="il-hd"><span style="font-size:13px;font-weight:700;color:#3b82f6">'+(idx+1)+'번 품목'+(line.name?' — '+line.name+' / '+line.color:'')+'</span><button class="btn sm d" onclick="removeItemLine(\''+line.id+'\')" style="margin-left:auto">× 제거</button></div>'+selHtml+qtyHtml+'</div>';
@@ -1079,12 +1108,21 @@ function updateLine(lid,field,val){
   var line=ordItemLines.find(function(l){return l.id===lid;});if(!line)return;
   if(field==='qty')line.qty=parseFloat(val)||0;
   else if(field==='nego')line.nego=parseFloat(val)||0;
-  else if(field==='unit')line.unit=val;
-  else if(field==='note')line.note=val;
+  else if(field==='unit'){line.unit=val;renderItemLines();return;}
+  else if(field==='note'){line.note=val;return;}
   line.supply=Math.round((line.nego||line.base)*(line.qty||0));
   calcTotal();
-  // 소계 업데이트
-  renderItemLines();
+  // 소계만 직접 업데이트 (DOM 재생성 없이)
+  var sumEl=document.getElementById('il-sum-'+lid);
+  if(sumEl){
+    if(line.qty>0){
+      sumEl.style.display='flex';
+      var span1=sumEl.querySelector('.il-sum-txt');
+      var span2=sumEl.querySelector('.il-sum-amt');
+      if(span1)span1.textContent=line.name+' / '+line.color+' · '+fmtN(line.qty)+(line.unit||'yd');
+      if(span2)span2.textContent=fmtN(line.supply||0)+'원';
+    }else{sumEl.style.display='none';}
+  }
 }
 function calcTotal(){
   var totalSupply=ordItemLines.reduce(function(a,l){return a+(l.supply||0);},0);
@@ -1192,8 +1230,24 @@ function saveOrd(editId){
 // ══════════════════════════════════════════════════════
 var curShipTab='active';
 function renderShip(){
-  // 확정된 주문만 출고 관리에 노출
-  var list=ORD.filter(function(o){return o.status==='confirmed';});
+  // 대시보드 업데이트
+  var allConf=ORD.filter(function(o){return o.status==='confirmed';});
+  var waitCnt=allConf.filter(function(o){var s=SHIP.find(function(sh){return sh.ordId===o.id;});return !s||!s.status;}).length;
+  var readyCnt=allConf.filter(function(o){var s=SHIP.find(function(sh){return sh.ordId===o.id;});return s&&s.status==='ready';}).length;
+  var doneCnt=allConf.filter(function(o){var s=SHIP.find(function(sh){return sh.ordId===o.id;});return s&&s.status==='done';}).length;
+  var closedCnt=allConf.filter(function(o){var s=SHIP.find(function(sh){return sh.ordId===o.id;});return s&&s.status==='closed';}).length;
+  var setText2=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  setText2('sh-wait',waitCnt);setText2('sh-ready',readyCnt);setText2('sh-done',doneCnt);setText2('sh-closed',closedCnt);
+  // 필터
+  var sf=document.getElementById('ship-status-f')?.value||'';
+  var df=document.getElementById('ship-date-f')?.value||'';
+  var list=allConf.filter(function(o){
+    var s=SHIP.find(function(sh){return sh.ordId===o.id;})||{};
+    var st=s.status||'wait';
+    if(sf&&st!==sf)return false;
+    if(df&&s.date&&s.date!==df)return false;
+    return true;
+  });
   var el=document.getElementById('ship-list');if(!el)return;
   if(!list.length){el.innerHTML='<div class="card empty">출고 항목이 없습니다. 주문을 확정하면 여기에 표시됩니다.</div>';return;}
   el.innerHTML=list.map(function(o){
@@ -1249,30 +1303,81 @@ function openShipDetail(ordId){
   var s=SHIP.find(function(sh){return sh.ordId===ordId;})||{ordId:ordId,lots:[],date:'',memo:''};
   var items=o.items&&o.items.length?o.items:[{invId:o.invId,name:o.invName||'-',color:o.color||'',lot:o.lotNo||'',qty:o.qty||0,unit:o.unit||'yd',note:''}];
   setText('m-ship-title','출고 처리 — '+o.custName);
-  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"><div class="fr"><label>출고일</label><input id="ship-date-inp" type="date" value="'+(s.date||today())+'"></div><div class="fr"><label>메모</label><input id="ship-memo-inp" value="'+(s.memo||'')+'" placeholder="출고 메모"></div></div>';
-  items.forEach(function(it,idx){
-    var sl=s.lots&&s.lots[idx]?s.lots[idx]:{};
-    html+='<div class="il-box"><div style="font-weight:600;margin-bottom:8px">'+it.name+' / '+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fr"><label>출고수량 (yd)</label><input id="sl-qty-'+idx+'" type="number" step="0.1" value="'+(sl.qty||it.qty||'')+'" placeholder="출고 yd"></div><div class="fr"><label>로스 (yd)</label><input id="sl-loss-'+idx+'" type="number" step="0.1" value="'+(sl.loss||0)+'" placeholder="0"></div></div></div>';
+  var html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div class="fr"><label>출고일</label><input id="ship-date-inp" type="date" value="'+(s.date||today())+'"></div>'
+    +'<div class="fr"><label>메모</label><input id="ship-memo-inp" value="'+(s.memo||'')+'" placeholder="출고 메모"></div>'
+    +'</div>';
+  items.forEach(function(it,ix){
+    var sl=(s.lots&&s.lots[ix])?s.lots[ix]:{rolls:[]};
+    var inv=INV.find(function(i){return i.id===it.invId;});
+    var rolls=(inv&&inv.rollYards)||[];
+    var activeRolls=rolls.map(function(yd,ri){return {yd:yd,ri:ri};}).filter(function(r){return r.yd>0;});
+    var rollTable='';
+    if(activeRolls.length){
+      rollTable+='<div style="margin-top:10px"><div style="font-size:12px;font-weight:600;color:#555;margin-bottom:5px">롤별 출고/로스 수량 입력</div>';
+      rollTable+='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f5f4f0">'
+        +'<th style="padding:5px 8px;border:1px solid #e5e3de;text-align:center">롤</th>'
+        +'<th style="padding:5px 8px;border:1px solid #e5e3de;text-align:right">보유(yd)</th>'
+        +'<th style="padding:5px 8px;border:1px solid #e5e3de;text-align:center">출고(yd)</th>'
+        +'<th style="padding:5px 8px;border:1px solid #e5e3de;text-align:center">로스(yd)</th>'
+        +'</tr></thead><tbody>';
+      activeRolls.forEach(function(r){
+        var pr=(sl.rolls&&sl.rolls[r.ri])||{};
+        rollTable+='<tr>'
+          +'<td style="padding:5px 8px;border:1px solid #f0ede8;text-align:center;font-weight:600">'+(r.ri+1)+'롤</td>'
+          +'<td style="padding:5px 8px;border:1px solid #f0ede8;text-align:right;color:#059669;font-weight:600">'+r.yd.toFixed(1)+'</td>'
+          +'<td style="padding:3px;border:1px solid #f0ede8"><input id="sr-'+ix+'-'+r.ri+'-qty" type="number" step="0.1" min="0" max="'+r.yd+'" value="'+(pr.qty||'')+'" placeholder="0" style="width:100%;padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:13px;text-align:right;font-family:inherit"></td>'
+          +'<td style="padding:3px;border:1px solid #f0ede8"><input id="sr-'+ix+'-'+r.ri+'-loss" type="number" step="0.1" min="0" value="'+(pr.loss||'')+'" placeholder="0" style="width:100%;padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:13px;text-align:right;font-family:inherit"></td>'
+          +'</tr>';
+      });
+      rollTable+='</tbody></table></div>';
+    }
+    html+='<div class="il-box" style="margin-bottom:10px">'
+      +'<div style="font-weight:700;font-size:14px;margin-bottom:8px">'+it.name+' / '+it.color+(it.lot?' <span class="ltag">'+fmtDate(it.lot)+'</span>':'')+'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        +'<div class="fr"><label>총 출고수량 (yd)</label><input id="sl-qty-'+ix+'" type="number" step="0.1" value="'+(sl.qty||it.qty||'')+'" placeholder="출고 yd"></div>'
+        +'<div class="fr"><label>총 로스 (yd)</label><input id="sl-loss-'+ix+'" type="number" step="0.1" value="'+(sl.loss||0)+'" placeholder="0"></div>'
+      +'</div>'
+      +rollTable
+      +'</div>';
   });
   document.getElementById('m-ship-body').innerHTML=html;
-  document.getElementById('m-ship-footer').innerHTML='<button class="btn" onclick="closeM(\'m-ship\')">취소</button><button class="btn" onclick="saveShip(\''+ordId+'\','+items.length+',false)">저장</button><button class="btn g" onclick="saveShip(\''+ordId+'\','+items.length+',true)">출고완료</button>';
+  document.getElementById('m-ship-footer').innerHTML=
+    '<button class="btn" onclick="closeM(\'m-ship\')">취소</button>'
+    +'<button class="btn" onclick="saveShip(\''+ordId+'\','+items.length+',false)">저장</button>'
+    +'<button class="btn g" onclick="saveShip(\''+ordId+'\','+items.length+',true)">출고완료</button>';
   openM('m-ship');
 }
+
 function saveShip(ordId,cnt,done){
   var date=document.getElementById('ship-date-inp')?.value||today();
   var memo=document.getElementById('ship-memo-inp')?.value||'';
+  var o=ORD.find(function(x){return x.id===ordId;});
+  var items=o&&o.items&&o.items.length?o.items:[{invId:o?o.invId:'',qty:o?o.qty||0:0}];
   var lots=[];
-  for(var i=0;i<cnt;i++){lots.push({qty:parseFloat(document.getElementById('sl-qty-'+i)?.value)||0,loss:parseFloat(document.getElementById('sl-loss-'+i)?.value)||0});}
+  for(var ix=0;ix<cnt;ix++){
+    var inv=INV.find(function(iv){return iv.id===(items[ix]?items[ix].invId:'');});
+    var rolls=(inv&&inv.rollYards)||[];
+    var rollData={};
+    rolls.forEach(function(yd,ri){
+      if(yd<=0)return;
+      var qEl=document.getElementById('sr-'+ix+'-'+ri+'-qty');
+      var lEl=document.getElementById('sr-'+ix+'-'+ri+'-loss');
+      if(qEl||lEl) rollData[ri]={qty:parseFloat(qEl?.value)||0,loss:parseFloat(lEl?.value)||0};
+    });
+    lots.push({
+      qty:parseFloat(document.getElementById('sl-qty-'+ix)?.value)||0,
+      loss:parseFloat(document.getElementById('sl-loss-'+ix)?.value)||0,
+      rolls:rollData
+    });
+  }
   var idx=SHIP.findIndex(function(s){return s.ordId===ordId;});
   var ship={id:idx>=0?SHIP[idx].id:uid(),ordId:ordId,date:date,memo:memo,lots:lots,status:done?'done':'ready'};
   if(idx>=0)SHIP[idx]=ship;else SHIP.push(ship);
-  if(done){
-    // 출고완료 시 주문 상태 업데이트
-    var o=ORD.find(function(x){return x.id===ordId;});
-    if(o)o.shipDate=date;
-  }
+  if(done&&o)o.shipDate=date;
   sv();closeM('m-ship');renderShip();
 }
+
 function markShipDone(ordId){
   var idx=SHIP.findIndex(function(s){return s.ordId===ordId;});
   if(idx>=0)SHIP[idx].status='done';
@@ -1325,7 +1430,7 @@ function printSelectedShips(){
     html+='<table><thead><tr><th>품목</th><th>컬러</th><th>로트번호</th><th>주문수량</th><th>롤별 수량</th><th>메모</th></tr></thead><tbody>';
     items.forEach(function(it){
       var inv=INV.find(function(i){return i.id===it.invId;});
-      var rolls=inv&&inv.rollYards?inv.rollYards.filter(function(y){return y>0;}).map(function(y,i){return (i+1)+'롤:'+y+'yd';}).join(' / '):'-';
+      var rolls=inv&&inv.rollYards?inv.rollYards.filter(function(y){return y>0;}).map(function(y){return y+'yd';}).join(' / '):'-';
       html+='<tr><td>'+it.name+'</td><td>'+it.color+'</td><td>'+(fmtDate(it.lot||'')||'-')+'</td><td>'+fmtN(it.qty)+' '+(it.unit||'yd')+'</td><td>'+rolls+'</td><td>'+(it.note||'')+'</td></tr>';
     });
     html+='</tbody></table>';
